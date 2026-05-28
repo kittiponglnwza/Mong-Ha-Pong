@@ -109,7 +109,7 @@ function PhaseMeme({ memeUrl, creature }) {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Phase 4 – REDESIGNED: title top, photo below, vertical
+   Phase 4 – REDESIGNED: Two-column layout (Photo Left, Stats Right)
 ───────────────────────────────────────────────────────────────*/
 function PhaseResult({ result, onScanAgain, onBackHome }) {
   const animalProfile = getAnimalProfile(result)
@@ -176,48 +176,25 @@ function PhaseResult({ result, onScanAgain, onBackHome }) {
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, transparent, rgba(251,146,60,0.5) 30%, rgba(251,191,36,0.9) 50%, rgba(251,146,60,0.5) 70%, transparent)', zIndex: 100 }} />
 
       {/* ════════════════════════════════════════
-          MAIN LAYOUT: centered vertical column
+         MAIN LAYOUT: TWO COLUMNS
       ════════════════════════════════════════ */}
       <div style={{
         position: 'relative',
         zIndex: 10,
-        maxWidth: 900,
+        maxWidth: 1200, // ขยายขนาดให้รองรับ 2 คอลัมน์
         margin: '0 auto',
         padding: 'clamp(2.5rem, 5vw, 4rem) clamp(1.25rem, 4vw, 2.5rem) 2rem',
         display: 'flex',
-        flexDirection: 'column',
+        flexWrap: 'wrap', // ปรับเป็นบรรทัดใหม่เมื่อจอเล็ก
         alignItems: 'center',
-        gap: 'clamp(1.5rem, 3vw, 2.5rem)',
+        justifyContent: 'center',
+        gap: 'clamp(3rem, 6vw, 5rem)',
       }}>
 
-        {/* ══ BLOCK 1: Label + Creature Title ══ */}
-        <div className="r1" style={{ textAlign: 'center', width: '100%' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.8rem' }}>
-            <div style={{ height: '1px', width: 32, background: 'rgba(251,146,60,0.4)' }} />
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.6rem', letterSpacing: '0.4em', color: 'rgba(251,146,60,0.65)', textTransform: 'uppercase', margin: 0 }}>Animal Result</p>
-            <div style={{ height: '1px', width: 32, background: 'rgba(251,146,60,0.4)' }} />
-          </div>
-
-          <h1 className="creature-shimmer" style={{
-            fontFamily: "'Cinzel', serif",
-            fontSize: 'clamp(3rem, 9vw, 6.5rem)',
-            fontWeight: 900,
-            lineHeight: 0.92,
-            margin: '0 0 0.6rem',
-            letterSpacing: '-0.01em',
-          }}>{result.creature}</h1>
-
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontStyle: 'italic', fontSize: 'clamp(0.75rem, 1.8vw, 0.9rem)', color: 'rgba(255,255,255,0.22)', margin: 0, letterSpacing: '0.06em', fontWeight: 300 }}>สรุปสัตว์มีมที่ใกล้กับ vibe ของคุณที่สุด</p>
-        </div>
-
-        {/* ── thin divider ── */}
-        <div className="r2" style={{ width: '100%', height: '1px', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06) 20%, rgba(251,146,60,0.15) 50%, rgba(255,255,255,0.06) 80%, transparent)' }} />
-
-        {/* ══ BLOCK 2: Photo Booth Strip (centered, big) ══ */}
-        <div className="r3" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+        {/* ══ LEFT COLUMN: Photo Booth Strip ══ */}
+        <div className="r3" style={{ flex: '1 1 400px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.58rem', letterSpacing: '0.35em', color: 'rgba(251,146,60,0.4)', textTransform: 'uppercase', margin: 0 }}>YOU ↔ MATCH</p>
 
-          {/* The photo booth card */}
           <div className="drift photo-card" style={{
             background: 'linear-gradient(160deg, #fff 0%, #f5f0e8 100%)',
             padding: 'clamp(8px, 1.5vw, 14px) clamp(8px, 1.5vw, 14px) clamp(28px, 4vw, 40px)',
@@ -226,7 +203,8 @@ function PhaseResult({ result, onScanAgain, onBackHome }) {
             gap: 'clamp(5px, 1vw, 8px)',
             boxShadow: '0 24px 80px rgba(0,0,0,0.75), 0 4px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.6)',
             transform: 'rotate(-2deg)',
-            width: 'clamp(280px, 55vw, 520px)',
+            width: '100%',
+            maxWidth: '420px',
             position: 'relative',
           }}>
             {/* Scan line */}
@@ -253,139 +231,104 @@ function PhaseResult({ result, onScanAgain, onBackHome }) {
               </div>
             ))}
 
-            {/* Bottom labels */}
             <div style={{ display: 'flex', gap: 'clamp(5px, 1vw, 8px)', marginTop: 2 }}>
               {['YOU', 'MATCH'].map(l => (
                 <p key={l} style={{ flex: 1, textAlign: 'center', fontSize: '9px', color: '#888', fontFamily: 'monospace', letterSpacing: '0.15em', margin: 0, textTransform: 'uppercase' }}>{l}</p>
               ))}
             </div>
 
-            {/* Perforated holes */}
             <div style={{ position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 10 }}>
               {[...Array(3)].map((_, i) => <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(0,0,0,0.12)' }} />)}
             </div>
           </div>
         </div>
 
-        {/* ── thin divider ── */}
-        <div className="r4" style={{ width: '100%', height: '1px', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06) 20%, rgba(251,146,60,0.15) 50%, rgba(255,255,255,0.06) 80%, transparent)' }} />
+        {/* ══ RIGHT COLUMN: Info & Stats ══ */}
+        <div style={{ flex: '1 1 500px', display: 'flex', flexDirection: 'column', gap: 'clamp(1.2rem, 2.5vw, 2rem)', width: '100%' }}>
+          
+          {/* Title Area */}
+          <div className="r1" style={{ textAlign: 'left', width: '100%' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.8rem' }}>
+              <div style={{ height: '1px', width: 32, background: 'rgba(251,146,60,0.4)' }} />
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.6rem', letterSpacing: '0.4em', color: 'rgba(251,146,60,0.65)', textTransform: 'uppercase', margin: 0 }}>Animal Result</p>
+            </div>
 
-        {/* ══ BLOCK 3: Match Score (hero number) ══ */}
-        <div className="r4" style={{ width: '100%' }}>
-          <div style={{
-            background: 'linear-gradient(135deg, rgba(251,146,60,0.07) 0%, rgba(251,191,36,0.03) 100%)',
-            border: '1px solid rgba(251,146,60,0.18)',
-            borderRadius: 20,
-            padding: 'clamp(1.25rem, 3vw, 2rem) clamp(1.5rem, 4vw, 2.5rem)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '1rem',
-            position: 'relative',
-            overflow: 'hidden',
-          }}>
-            <div style={{ position: 'absolute', top: 0, right: 0, width: 120, height: 120, background: 'radial-gradient(circle at top right, rgba(251,191,36,0.1), transparent 70%)', pointerEvents: 'none' }} />
-            <div>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.6rem', letterSpacing: '0.3em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', margin: '0 0 0.2rem' }}>Match Score</p>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
-                <span style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontSize: 'clamp(3.5rem, 10vw, 6rem)',
-                  fontWeight: 900,
-                  lineHeight: 1,
-                  color: '#fb923c',
-                  textShadow: '0 0 40px rgba(251,146,60,0.45)',
-                }}>{score}</span>
-                <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(1.2rem, 3vw, 2rem)', fontWeight: 700, color: 'rgba(251,146,60,0.45)' }}>%</span>
-              </div>
-            </div>
-            {/* Progress bar on right */}
-            <div style={{ flex: 1, maxWidth: 320 }}>
-              <div style={{ height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: 99, overflow: 'hidden' }}>
-                <div ref={barRef} style={{
-                  height: '100%', width: '0%', borderRadius: 99,
-                  background: 'linear-gradient(90deg, #f97316, #fbbf24)',
-                  transition: 'width 1.6s cubic-bezier(0.16,1,0.3,1)',
-                  boxShadow: '0 0 10px rgba(251,146,60,0.7)',
-                }} />
-              </div>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontStyle: 'italic', fontSize: '0.7rem', color: 'rgba(255,255,255,0.15)', margin: '0.5rem 0 0', letterSpacing: '0.04em', fontWeight: 300 }}>"{animalProfile.description}"</p>
-            </div>
+            <h1 className="creature-shimmer" style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: 'clamp(2.5rem, 7vw, 5.5rem)',
+              fontWeight: 900,
+              lineHeight: 0.92,
+              margin: '0 0 0.6rem',
+              letterSpacing: '-0.01em',
+            }}>{result.creature}</h1>
+
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontStyle: 'italic', fontSize: 'clamp(0.75rem, 1.8vw, 0.9rem)', color: 'rgba(255,255,255,0.22)', margin: 0, letterSpacing: '0.06em', fontWeight: 300 }}>สรุปสัตว์มีมที่ใกล้กับ vibe ของคุณที่สุด</p>
           </div>
-        </div>
 
-        {/* ══ BLOCK 4: Stats trio ══ */}
-        <div className="r5" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'clamp(0.6rem, 1.5vw, 1rem)' }}>
-          {[
-            { label: 'Aura', val: result.aura, icon: '✦', accent: 'rgba(251,146,60,' },
-            { label: 'Braincells', val: result.braincells, icon: '◈', accent: 'rgba(139,92,246,' },
-            { label: 'Rarity', val: result.rarity, icon: '◇', accent: 'rgba(251,191,36,' },
-          ].map(({ label, val, icon, accent }) => (
-            <div key={label} style={{
-              background: 'rgba(255,255,255,0.025)',
-              border: `1px solid ${accent}0.1)`,
-              borderTop: `2px solid ${accent}0.3)`,
-              borderRadius: 16,
-              padding: 'clamp(1rem, 2.5vw, 1.5rem) 0.75rem',
-              textAlign: 'center',
+          <div className="r2" style={{ width: '100%', height: '1px', background: 'linear-gradient(90deg, rgba(251,146,60,0.15) 0%, rgba(255,255,255,0.06) 50%, transparent 100%)' }} />
+
+          {/* Match Score */}
+          <div className="r4" style={{ width: '100%' }}>
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(251,146,60,0.07) 0%, rgba(251,191,36,0.03) 100%)',
+              border: '1px solid rgba(251,146,60,0.18)',
+              borderRadius: 20,
+              padding: 'clamp(1.25rem, 3vw, 2rem) clamp(1.5rem, 4vw, 2.5rem)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '1rem',
               position: 'relative',
               overflow: 'hidden',
             }}>
-              <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '60%', height: '1px', background: `linear-gradient(90deg, transparent, ${accent}0.4), transparent)` }} />
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.55rem', letterSpacing: '0.25em', color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', margin: '0 0 0.5rem' }}>{icon} {label}</p>
-              <p style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(1rem, 2.5vw, 1.4rem)', fontWeight: 700, color: '#f0ede8', margin: 0, letterSpacing: '0.02em' }}>{val}</p>
+              <div style={{ position: 'absolute', top: 0, right: 0, width: 120, height: 120, background: 'radial-gradient(circle at top right, rgba(251,191,36,0.1), transparent 70%)', pointerEvents: 'none' }} />
+              <div>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.6rem', letterSpacing: '0.3em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', margin: '0 0 0.2rem' }}>Match Score</p>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
+                  <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(3.5rem, 10vw, 5.5rem)', fontWeight: 900, lineHeight: 1, color: '#fb923c', textShadow: '0 0 40px rgba(251,146,60,0.45)' }}>{score}</span>
+                  <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(1.2rem, 3vw, 2rem)', fontWeight: 700, color: 'rgba(251,146,60,0.45)' }}>%</span>
+                </div>
+              </div>
+              <div style={{ flex: 1, maxWidth: 320 }}>
+                <div style={{ height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: 99, overflow: 'hidden' }}>
+                  <div ref={barRef} style={{ height: '100%', width: '0%', borderRadius: 99, background: 'linear-gradient(90deg, #f97316, #fbbf24)', transition: 'width 1.6s cubic-bezier(0.16,1,0.3,1)', boxShadow: '0 0 10px rgba(251,146,60,0.7)' }} />
+                </div>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontStyle: 'italic', fontSize: '0.7rem', color: 'rgba(255,255,255,0.15)', margin: '0.5rem 0 0', letterSpacing: '0.04em', fontWeight: 300 }}>"{animalProfile.description}"</p>
+              </div>
             </div>
-          ))}
+          </div>
+
+          {/* Stats */}
+          <div className="r5" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'clamp(0.6rem, 1.5vw, 1rem)' }}>
+            {[
+              { label: 'Aura', val: result.aura, icon: '✦', accent: 'rgba(251,146,60,' },
+              { label: 'Braincells', val: result.braincells, icon: '◈', accent: 'rgba(139,92,246,' },
+              { label: 'Rarity', val: result.rarity, icon: '◇', accent: 'rgba(251,191,36,' },
+            ].map(({ label, val, icon, accent }) => (
+              <div key={label} style={{ background: 'rgba(255,255,255,0.025)', border: `1px solid ${accent}0.1)`, borderTop: `2px solid ${accent}0.3)`, borderRadius: 16, padding: 'clamp(1rem, 2.5vw, 1.5rem) 0.75rem', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '60%', height: '1px', background: `linear-gradient(90deg, transparent, ${accent}0.4), transparent)` }} />
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.55rem', letterSpacing: '0.25em', color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', margin: '0 0 0.5rem' }}>{icon} {label}</p>
+                <p style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(1rem, 2.5vw, 1.4rem)', fontWeight: 700, color: '#f0ede8', margin: 0, letterSpacing: '0.02em' }}>{val}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Tags */}
+          <div className="r6" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start', width: '100%' }}>
+            {animalProfile.tags.map((tag) => (
+              <span key={tag} className="tag-pill" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.09)', background: 'rgba(255,255,255,0.025)', padding: '5px 14px', borderRadius: 99, letterSpacing: '0.04em' }}>{tag}</span>
+            ))}
+          </div>
+
+          {/* Buttons */}
+          <div className="r7" style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.75rem', marginTop: '0.5rem' }}>
+            <button onClick={onScanAgain} className="ghost-btn" style={{ fontFamily: "'DM Sans', sans-serif", background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem', fontWeight: 400, padding: '0.9rem', borderRadius: 14, cursor: 'pointer', letterSpacing: '0.04em' }}>สแกนใหม่</button>
+            <button onClick={onBackHome} className="glow-btn" style={{ fontFamily: "'DM Sans', sans-serif", background: 'linear-gradient(135deg, #f97316 0%, #fb923c 60%, #fbbf24 100%)', border: 'none', color: '#fff', fontSize: '0.88rem', fontWeight: 500, padding: '0.9rem', borderRadius: 14, cursor: 'pointer', letterSpacing: '0.04em', textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>กลับหน้าแรก</button>
+          </div>
+
+          <p style={{ fontFamily: 'monospace', fontSize: '0.52rem', color: 'rgba(255,255,255,0.08)', letterSpacing: '0.3em', margin: '0.5rem 0 0', textTransform: 'uppercase', textAlign: 'left' }}>b main scanner v1.0 · animal identification system</p>
         </div>
 
-        {/* ══ BLOCK 5: Tags ══ */}
-        <div className="r6" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', width: '100%' }}>
-          {animalProfile.tags.map((tag) => (
-            <span key={tag} className="tag-pill" style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: '0.68rem',
-              color: 'rgba(255,255,255,0.35)',
-              border: '1px solid rgba(255,255,255,0.09)',
-              background: 'rgba(255,255,255,0.025)',
-              padding: '5px 14px',
-              borderRadius: 99,
-              letterSpacing: '0.04em',
-            }}>{tag}</span>
-          ))}
-        </div>
-
-        {/* ══ BLOCK 6: Buttons ══ */}
-        <div className="r7" style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.75rem' }}>
-          <button onClick={onScanAgain} className="ghost-btn" style={{
-            fontFamily: "'DM Sans', sans-serif",
-            background: 'transparent',
-            border: '1px solid rgba(255,255,255,0.1)',
-            color: 'rgba(255,255,255,0.4)',
-            fontSize: '0.82rem',
-            fontWeight: 400,
-            padding: '0.9rem',
-            borderRadius: 14,
-            cursor: 'pointer',
-            letterSpacing: '0.04em',
-          }}>สแกนใหม่</button>
-
-          <button onClick={onBackHome} className="glow-btn" style={{
-            fontFamily: "'DM Sans', sans-serif",
-            background: 'linear-gradient(135deg, #f97316 0%, #fb923c 60%, #fbbf24 100%)',
-            border: 'none',
-            color: '#fff',
-            fontSize: '0.88rem',
-            fontWeight: 500,
-            padding: '0.9rem',
-            borderRadius: 14,
-            cursor: 'pointer',
-            letterSpacing: '0.04em',
-            textShadow: '0 1px 3px rgba(0,0,0,0.3)',
-          }}>กลับหน้าแรก</button>
-        </div>
-
-        {/* ── watermark ── */}
-        <p style={{ fontFamily: 'monospace', fontSize: '0.52rem', color: 'rgba(255,255,255,0.08)', letterSpacing: '0.3em', margin: '0.5rem 0 0', textTransform: 'uppercase' }}>b main scanner v1.0 · animal identification system</p>
       </div>
     </section>
   )
