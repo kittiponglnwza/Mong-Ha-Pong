@@ -8,23 +8,33 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="MemeFace API")
 
-# --- แก้ไขตรงจุดนี้ใน main.py ---
+# 1. ตั้งค่า CORS สำหรับ API Routes ปกติ
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # เจาะจงไปเลยว่าอนุญาตให้พอร์ต Frontend ของเราเข้าถึงได้
-    allow_credentials=True,                    # เปลี่ยนจาก False เป็น True
+    allow_origins=["*"],  
+    allow_credentials=False,                    
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"],
 )
+
+# 2. 🌟 สร้าง Class พิเศษเพื่อบังคับให้ Static Files พ่น CORS แน่นอน (แก้บั๊กสถานะ 304/404 ลืมพ่น CORS)
+class CORSStaticFiles(StaticFiles):
+    async def get_response(self, path: str, scope):
+        response = await super().get_response(path, scope)
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        return response
 
 app.include_router(results.router)
 app.include_router(leaderboard.router)
 app.include_router(analyze.router)
 app.include_router(clips.router)
 
-app.mount("/memes", StaticFiles(directory="app/memes"), name="memes")
-app.mount("/clips", StaticFiles(directory="app/clips"), name="clips")
+# 3. 🌟 เปลี่ยนจาก StaticFiles ตัวเดิม มาใช้ CORSStaticFiles ตัวใหม่ที่เราสร้างไว้ด้านบน
+app.mount("/memes", CORSStaticFiles(directory="app/memes"), name="memes")
+app.mount("/clips", CORSStaticFiles(directory="app/clips"), name="clips")
 
 @app.get("/")
 def root():
