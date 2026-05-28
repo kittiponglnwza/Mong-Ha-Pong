@@ -19,7 +19,8 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
   const peekTimeRef = useRef(null)
   const roundRef = useRef(0)
   const capturedRef = useRef(false)
-  const playStartTimeRef = useRef(null) // ⏱ จับเวลาเริ่มเล่น
+  const playStartTimeRef = useRef(null)
+  const peekStartTimeRef = useRef(null) // ⏱ จับเวลาตอน peek โผล่จริงๆ
 
   const frameBufferRef = useRef([])
   const captureLoopRef = useRef(null)
@@ -112,6 +113,7 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
     hasClickedRef.current = false
     capturedRef.current = false
     playStartTimeRef.current = null
+    peekStartTimeRef.current = null
 
     photosRef.current = {
       beginImg: photosRef.current.beginImg || null,
@@ -157,8 +159,17 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
   }, [phase])
 
   const handleTimeUpdate = () => {
-    if (!isJumpscare || capturedRef.current) return
-    if (videoRef.current?.currentTime >= peekTimeRef.current) {
+    if (isJumpscare && capturedRef.current) return
+
+    const t = videoRef.current?.currentTime ?? 0
+    const peek = peekTimeRef.current ?? 0
+
+    // ⏱ บันทึกเวลาจริงตอน peek โผล่ครั้งแรก
+    if (t >= peek && peekStartTimeRef.current === null) {
+      peekStartTimeRef.current = Date.now()
+    }
+
+    if (isJumpscare && t >= peek) {
       capturedRef.current = true
       photosRef.current.jumpscareImg = getLatestFrame()
       finishGame()
@@ -190,14 +201,24 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
     videoRef.current?.pause()
     photosRef.current.tooLateImg = getLatestFrame()
 
-    // ⏱ คำนวณ reflex time
-    const elapsed = playStartTimeRef.current ? Date.now() - playStartTimeRef.current : null
-    const ms = elapsed ?? 0
-    setReflexMs(ms)
-    setAllReflexTimes(prev => [...prev, { round: roundRef.current, ms, verdict: 'perfect' }])
+    const peekStarted = peekStartTimeRef.current !== null // peek โผล่แล้วหรือยัง
 
-    playSound('hit')
-    setResultData({ verdict: 'perfect', diff: 0, stopTime: 0, peekTime: 0, ms })
+    if (!peekStarted) {
+      // กดก่อน peek โผล่เลย — too early
+      playSound('miss')
+      const ms = playStartTimeRef.current ? Date.now() - playStartTimeRef.current : 0
+      setReflexMs(null)
+      setAllReflexTimes(prev => [...prev, { round: roundRef.current, ms, verdict: 'early' }])
+      setResultData({ verdict: 'early', ms: null })
+    } else {
+      // กดหลัง peek โผล่ — คำนวณ reflex จากตอน peek จริงๆ
+      const reflexAfterPeek = Date.now() - peekStartTimeRef.current
+      playSound('hit')
+      setReflexMs(reflexAfterPeek)
+      setAllReflexTimes(prev => [...prev, { round: roundRef.current, ms: reflexAfterPeek, verdict: 'perfect' }])
+      setResultData({ verdict: 'perfect', ms: reflexAfterPeek })
+    }
+
     fetchResultImg()
     setPhase('result')
   }
@@ -291,7 +312,9 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
                 <div style={styles.photoPlaceholder}>🖼️</div>
               )}
               <p style={styles.photoCaption}>
-                {resultData.verdict === 'perfect' ? '🎯 nice shot' : '💀 too slow'}
+                {resultData.verdict === 'perfect' ? '🎯 nice shot'
+               : resultData.verdict === 'early'   ? '⚡ too early'
+               : '💀 too slow'}
               </p>
             </div>
 
@@ -299,9 +322,13 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
             <div style={styles.resultCol}>
               <p style={{
                 ...styles.verdict,
-                color: resultData.verdict === 'perfect' ? '#00ff88' : '#ff4444'
+                color: resultData.verdict === 'perfect' ? '#00ff88'
+                     : resultData.verdict === 'early'   ? '#ffaa00'
+                     : '#ff4444'
               }}>
-                {resultData.verdict === 'perfect' ? '🎯 PERFECT' : '💀 TOO LATE'}
+                {resultData.verdict === 'perfect' ? '🎯 PERFECT'
+               : resultData.verdict === 'early'   ? '⚡ TOO EARLY'
+               : '💀 TOO LATE'}
               </p>
 
               {resultData.ms !== undefined && (
@@ -330,7 +357,9 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
                               <div style={{
                                 ...styles.bar,
                                 height: h,
-                                background: r.verdict === 'perfect' ? '#00ff88' : '#ff4444'
+                                background: r.verdict === 'perfect' ? '#00ff88'
+                                        : r.verdict === 'early'   ? '#ffaa00'
+                                        : '#ff4444'
                               }} />
                               <span style={styles.barLabel}>R{r.round}</span>
                             </div>
