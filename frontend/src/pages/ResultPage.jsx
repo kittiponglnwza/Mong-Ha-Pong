@@ -119,7 +119,7 @@ function PhaseResult({ result, onScanAgain, onBackHome }) {
   const photoCardRef = useRef(null) 
   const [isSaving, setIsSaving] = useState(false)
   
-  // 🔥 สร้าง State เพื่อเก็บรูปที่แปลงเป็น Base64 แล้ว
+  // สร้าง State เพื่อเก็บรูปที่แปลงเป็น Base64 แล้ว
   const [memeBase64, setMemeBase64] = useState('')
   const [userBase64, setUserBase64] = useState('')
 
@@ -130,19 +130,15 @@ function PhaseResult({ result, onScanAgain, onBackHome }) {
     }, 800)
     return () => clearTimeout(t)
   }, [score])
-// 🔥 1. ฟังก์ชันดึงรูปจาก URL มาแปลงเป็น Base64 พร้อมตัวทะลวงแคช (Cache Buster)
+
+  // 1. ฟังก์ชันดึงรูปจาก URL มาแปลงเป็น Base64 พร้อมตัวทะลวงแคช (Cache Buster)
   useEffect(() => {
     const fetchAsBase64 = async (url, setter) => {
       if (!url) return;
       try {
-        // ทริคทะลวงแคช: เช็คว่า URL มีเครื่องหมาย ? หรือยัง แล้วเติมค่าเวลา (Timestamp) ต่อท้าย
         const cacheBuster = url.includes('?') ? `&t=${Date.now()}` : `?t=${Date.now()}`;
-        
-        // สั่ง fetch ไปที่ URL ใหม่ที่แถม Timestamp ไปด้วย
         const res = await fetch(url + cacheBuster);
-        
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        
         const blob = await res.blob();
         const reader = new FileReader();
         reader.onloadend = () => setter(reader.result);
@@ -156,21 +152,58 @@ function PhaseResult({ result, onScanAgain, onBackHome }) {
     fetchAsBase64(result.scanImageUrl, setUserBase64);
   }, [result.matched_meme_url, result.scanImageUrl]);
 
-  // 📸 2. ฟังก์ชันบันทึกรูปภาพ (Photo Strip) ที่หายไป นำกลับมาวางคืนให้ถูกตำแหน่ง
+  // 📸 2. ฟังก์ชันบันทึกรูปภาพ (Photo Strip) อัปเกรดให้สัดส่วนตรงปกและคมชัดสูง
   const handleSaveImage = async () => {
     if (!photoCardRef.current || isSaving) return;
     try {
       setIsSaving(true);
       
+      // สั่งให้รอจนกระทั่งฟอนต์ในหน้าเว็บโหลดเสร็จ 100% ป้องกันตัวหนังสือเบี้ยว/เปลี่ยนฟอนต์
+      if (document.fonts) {
+        await document.fonts.ready;
+      }
+      
       const canvas = await html2canvas(photoCardRef.current, {
         useCORS: true,        
         backgroundColor: '#f7f3eb', 
-        scale: 2,            
+        scale: 3, // เพิ่มเป็น 3 เท่าเพื่อให้ภาพเซฟออกมาระดับ HD ลายเส้นไม่แตกเบลอ
+        logging: false,            
         onclone: (clonedDoc) => {
           const clonedCard = clonedDoc.getElementById('download-photo-card');
           if (clonedCard) {
+            // ล้างทรานส์ฟอร์มและความเอียงออกเพื่อให้รูปตั้งตรงพอดีเป๊ะ
             clonedCard.style.transform = 'none';  
             clonedCard.style.animation = 'none';  
+            
+            // ล็อกขนาดพิกเซลแบบคงที่ (Fixed Width) แทนการใช้ clamp() และ vw เฉพาะตอนวาดภาพ
+            clonedCard.style.width = '320px';
+            clonedCard.style.padding = '12px 12px 32px 12px';
+            clonedCard.style.gap = '6px';
+            
+            // ลูปแกะกล่องแถวรูปภาพทั้ง 3 แถว เพื่อล็อกขนาดรูปให้ซ้ายขวาเท่ากัน ไม่โดน Flex ยืดหรือหดหดตัวจนเพี้ยน
+            const rows = clonedCard.querySelectorAll('div[style*="display: flex"][style*="gap:"]');
+            rows.forEach(row => {
+              row.style.gap = '6px';
+              const cells = row.children;
+              for (let cell of cells) {
+                if (cell.style.aspectRatio === '1/1') {
+                  cell.style.width = '145px';
+                  cell.style.height = '145px';
+                  cell.style.flex = 'none'; // ห้ามยืดหด
+                }
+              }
+            });
+
+            // ปรับแต่งแถวอักษร YOU / MATCH ด้านล่างสุดให้สัดส่วนตรงกับขนาดรูปภาพพอดี
+            const labelContainer = clonedCard.querySelector('div[style*="margin-top: 4px"]');
+            if (labelContainer) {
+              labelContainer.style.gap = '6px';
+              for (let p of labelContainer.children) {
+                p.style.fontSize = '10px';
+                p.style.flex = 'none';
+                p.style.width = '145px';
+              }
+            }
           }
         }
       });
@@ -288,20 +321,20 @@ function PhaseResult({ result, onScanAgain, onBackHome }) {
 
       <div className="layout-container" style={{ position: 'relative', zIndex: 10 }}>
 
-        {/* ══ ฝั่งซ้าย: Photo Booth Strip ══ */}
+        {/* ══ ฝั่งซ้าย: Photo Booth Strip (เวอร์ชันแก้ Layout เพี้ยน) ══ */}
         <div className="col-left r3">
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.55rem', letterSpacing: '0.3em', color: 'rgba(249,115,22,0.6)', textTransform: 'uppercase', margin: 0, fontWeight: 500 }}>YOU ↔ MATCH</p>
 
             <div className="drift photo-card" id="download-photo-card" ref={photoCardRef} style={{
               background: 'linear-gradient(160deg, #ffffff 0%, #f7f3eb 100%)',
-              padding: 'clamp(6px, 1.2vw, 12px) clamp(6px, 1.2vw, 12px) clamp(22px, 3.5vw, 32px)',
+              padding: '12px 12px 30px', // 🔥 เปลี่ยนเป็น px ตายตัว เพื่อป้องกัน html2canvas เอ๋อ
               display: 'flex',
               flexDirection: 'column',
-              gap: 'clamp(4px, 0.8vw, 6px)',
+              gap: '6px', // 🔥 เปลี่ยนเป็น px ตายตัว
               boxShadow: '0 25px 70px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.9)',
               transform: 'rotate(-2deg)',
-              width: 'clamp(250px, 23vw, 320px)',
+              width: '290px', // 🔥 กำหนดความกว้างล็อกไว้ที่ 290px กำลังสวยและคมชัดพอดี
               position: 'relative',
             }}>
               <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 2 }}>
@@ -313,7 +346,7 @@ function PhaseResult({ result, onScanAgain, onBackHome }) {
                 'none',
                 'grayscale(0.3) contrast(1.15)',
               ].map((filter, i) => (
-                <div key={i} style={{ display: 'flex', gap: 'clamp(4px, 0.8vw, 6px)' }}>
+                <div key={i} style={{ display: 'flex', gap: '6px' }}> {/* 🔥 เปลี่ยนเป็น px ตายตัว */}
                   
                   {/* 🔥 ใช้รูป Base64 ฝั่ง You */}
                   <div style={{ flex: 1, aspectRatio: '1/1', overflow: 'hidden', background: '#d1d1d1' }}>
@@ -332,14 +365,14 @@ function PhaseResult({ result, onScanAgain, onBackHome }) {
                 </div>
               ))}
 
-              <div style={{ display: 'flex', gap: '6px', marginTop: 4 }}>
+              <div style={{ display: 'flex', gap: '6px', marginTop: 6 }}>
                 {['YOU', 'MATCH'].map(l => (
-                  <p key={l} style={{ flex: 1, textAlign: 'center', fontSize: '8px', color: '#777', fontFamily: 'monospace', letterSpacing: '0.15em', margin: 0, fontWeight: 'bold' }}>{l}</p>
+                  <p key={l} style={{ flex: 1, textAlign: 'center', fontSize: '10px', color: '#777', fontFamily: 'monospace', letterSpacing: '0.15em', margin: 0, fontWeight: 'bold' }}>{l}</p>
                 ))}
               </div>
 
-              <div style={{ position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8 }}>
-                {[...Array(3)].map((_, i) => <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(0,0,0,0.15)' }} />)}
+              <div style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8 }}>
+                {[...Array(3)].map((_, i) => <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(0,0,0,0.15)' }} />)}
               </div>
             </div>
           </div>
