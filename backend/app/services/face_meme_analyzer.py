@@ -47,22 +47,35 @@ SELECTED_LANDMARKS = {
 }
 
 
-# 2. ฟังก์ชันเลือกรูปจากโฟลเดอร์ที่ตรงกับชื่อหมวดหมู่อารมณ์
-def select_meme_image(category):
+# 2. ฟังก์ชันเลือกรูปจากโฟลเดอร์ที่ตรงกับชื่อหมวดหมู่อารมณ์ (คืน 3 รูปไม่ซ้ำกัน)
+def select_meme_images(category, count=3):
     category_dir = MEME_DIR / category
-    
-    # ถ้ามีโฟลเดอร์อารมณ์นี้ ให้ดึงรูปทั้งหมดในนั้นมาสุ่ม
+
     if category_dir.exists():
         meme_images = [
             path for path in category_dir.iterdir()
             if path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS
         ]
         if meme_images:
-            return random.choice(meme_images)
-            
+            # ถ้ามีรูปน้อยกว่า count ให้ sample with replacement (ซ้ำได้)
+            if len(meme_images) >= count:
+                return random.sample(meme_images, count)
+            else:
+                return random.choices(meme_images, k=count)
+
     # กรณีฉุกเฉิน (โฟลเดอร์ว่าง หรือหาไม่เจอ) ให้ดึงรูปอะไรก็ได้ในโฟลเดอร์ memes มาแทน
     all_images = [p for p in MEME_DIR.rglob("*") if p.is_file() and p.suffix.lower() in IMAGE_EXTENSIONS]
-    return random.choice(all_images) if all_images else None
+    if not all_images:
+        return []
+    if len(all_images) >= count:
+        return random.sample(all_images, count)
+    return random.choices(all_images, k=count)
+
+
+# backward-compat wrapper (ใช้ใน fallback path ด้านล่าง)
+def select_meme_image(category):
+    results = select_meme_images(category, count=1)
+    return results[0] if results else None
 
 
 def point(landmarks, index):
@@ -242,14 +255,18 @@ def analyze_face_meme(image_bytes):
     creature, animal_vibe, default_rarity = CATEGORY_LABELS[category]
     rarity = rarity_from_confidence(default_rarity, confidence)
     
-    # 4. เรียกรูปและแปลง URL ให้ต่อโฟลเดอร์อารมณ์ถูกต้อง
-    matched_image = select_meme_image(category)
-    if matched_image:
-        relative_path = matched_image.relative_to(MEME_DIR)
+    # 4. เรียก 3 รูปและแปลง URL ให้ต่อโฟลเดอร์อารมณ์ถูกต้อง
+    matched_images = select_meme_images(category, count=3)
+
+    def image_to_url(img_path):
+        relative_path = img_path.relative_to(MEME_DIR)
         encoded_path = quote(str(relative_path).replace("\\", "/"))
-        final_meme_url = f"http://localhost:8002/memes/{encoded_path}"
-    else:
-        final_meme_url = ""
+        return f"http://localhost:8002/memes/{encoded_path}"
+
+    matched_meme_urls = [image_to_url(img) for img in matched_images]
+    # backward-compat: ยังคง matched_meme_url (รูปแรก) ไว้ให้ client เก่าใช้ได้
+    final_meme_url = matched_meme_urls[0] if matched_meme_urls else ""
+    matched_image = matched_images[0] if matched_images else None
 
     aura = clamp(
         50
@@ -275,6 +292,7 @@ def analyze_face_meme(image_bytes):
         "animal_vibe": animal_vibe,
         "matched_meme_name": matched_image.name if matched_image else "Unknown",
         "matched_meme_url": final_meme_url,
+        "matched_meme_urls": matched_meme_urls,
         "face_detected": True,
         "face_count": len(faces),
         "analysis_method": "mediapipe-face-mesh-rules",
