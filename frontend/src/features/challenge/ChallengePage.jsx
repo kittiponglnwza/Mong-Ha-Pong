@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 
 const API = 'http://localhost:8002'
-const JUMPSCARE_ROUND = 3
+const JUMPSCARE_ROUND = 2
 
 export default function ChallengePage({ onDone, onJumpscare, onBack }) {
   const [phase, setPhase] = useState('loading')

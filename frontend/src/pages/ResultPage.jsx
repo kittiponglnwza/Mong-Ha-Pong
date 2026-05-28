@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { getAnimalProfile } from '../utils/animalProfile'
 import end1Bg from '../assets/end_1.jpg'
+import flashImg from '../assets/flash.jpg'  // 👈 เปลี่ยนชื่อไฟล์ให้ตรงกับของจริง
 import html2canvas from 'html2canvas'
 
 /* ─────────────────────────────────────────────────────────────
@@ -33,89 +34,233 @@ function PhaseAnnounce({ creature, imageUrl }) {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Phase 2 – full-screen face reveal + boom sound
+   Phase 2 – cinematic face reveal: slow burn + spotlight
 ───────────────────────────────────────────────────────────────*/
+const boomAudio = new Audio('/sounds/faaah.mp3')
+boomAudio.volume = 1.0
+boomAudio.load()
+
 function playBoom() {
-  const audio = new Audio('/sounds/faaah.mp3')
-  audio.volume = 1.0
-  audio.play().catch(() => {})
+  boomAudio.currentTime = 0
+  boomAudio.play().catch(() => {})
+}
+
+// preload เสียง flash ไว้รอเลย ไม่ต้อง load ตอน trigger
+const flashAudio = new Audio('/sounds/flash.mp3')
+flashAudio.volume = 1.0
+flashAudio.load()
+
+function playFlashSound() {
+  flashAudio.currentTime = 0  // reset ให้เล่นจากต้น
+  flashAudio.play().catch(() => {})
 }
 
 function PhaseFace({ imageUrl }) {
-  const [visible, setVisible] = useState(false)
-  const [flash, setFlash] = useState(false)
-  
+  const [step, setStep] = useState(0) // 0=black 1=flash-in 2=flash-hold 3=flash-out+photo 4=label
+
   useEffect(() => {
-    const t1 = setTimeout(() => {
-      setFlash(true); playBoom()
-      setTimeout(() => setFlash(false), 120)
-      setVisible(true)
-    }, 120)
-    return () => clearTimeout(t1)
+    const t0 = setTimeout(() => { setStep(1); playFlashSound() }, 300)
+    const t1 = setTimeout(() => setStep(2), 350)   // ค้าง hold
+    const t2 = setTimeout(() => { setStep(3); playBoom() }, 850)   // fade out + รูปโผล่
+    const t3 = setTimeout(() => setStep(4), 1650)  // label ขึ้น
+    return () => { [t0,t1,t2,t3].forEach(clearTimeout) }
   }, [])
 
   return (
-    <section className="relative min-h-dvh bg-black overflow-hidden flex flex-col items-center justify-center">
+    <section style={{
+      minHeight: '100dvh', background: '#000', overflow: 'hidden',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      position: 'relative',
+    }}>
       <style>{`
-        @keyframes slam-in { 0%{transform:scale(1.25);opacity:0;filter:brightness(2.5)} 40%{filter:brightness(1.1)} 100%{transform:scale(1);opacity:1;filter:brightness(1)} }
-        @keyframes label-rise { 0%{opacity:0;transform:translateY(16px)} 100%{opacity:1;transform:translateY(0)} }
-        .slam-in{animation:slam-in 0.55s cubic-bezier(0.16,1,0.3,1) both}
-        .label-rise{animation:label-rise 0.5s 0.4s cubic-bezier(0.22,1,0.36,1) both}
+        @keyframes flash-in  { from{opacity:0} to{opacity:1} }
+        @keyframes flash-out { from{opacity:1} to{opacity:0} }
+        @keyframes photo-rise {
+          0%   { opacity:0; transform:scale(1.05); filter:brightness(2.5); }
+          30%  { filter:brightness(1.15); }
+          100% { opacity:1; transform:scale(1);    filter:brightness(1); }
+        }
+        @keyframes vignette-in { from{opacity:0} to{opacity:1} }
+        @keyframes label-up { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes line-grow { from{transform:scaleX(0)} to{transform:scaleX(1)} }
+        .flash-in    { animation: flash-in  0.05s ease both; }
+        .flash-out   { animation: flash-out 0.75s cubic-bezier(0.4,0,1,1) both; }
+        .photo-rise  { animation: photo-rise 0.9s cubic-bezier(0.16,1,0.3,1) both; }
+        .label-tag   { animation: label-up 0.6s cubic-bezier(0.22,1,0.36,1) both; }
+        .label-title { animation: label-up 0.6s cubic-bezier(0.22,1,0.36,1) 0.1s both; }
+        .line-grow   { animation: line-grow 0.5s cubic-bezier(0.22,1,0.36,1) 0.06s both; transform-origin:left; }
       `}</style>
-      {flash && <div className="absolute inset-0 bg-white z-50 pointer-events-none" />}
-      {visible && (
-        <div className="slam-in relative z-10 flex flex-col items-center gap-5 px-6">
-          <div style={{ width: "min(380px,88vw)", borderRadius: "4px", overflow: "hidden", boxShadow: "0 8px 40px rgba(0,0,0,0.7)", background: "#111", aspectRatio: "4/5" }}>
-            {imageUrl 
-              ? <img src={imageUrl} alt="Your face" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 20%" }} /> 
-              : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "5rem" }}>📸</div>}
+
+      {/* Phoenix flash — รูปภาพค้าง 500ms แล้ว fade */}
+      {step >= 1 && step <= 3 && (
+        <img
+          src={flashImg}
+          className={step === 1 ? 'flash-in' : step === 3 ? 'flash-out' : ''}
+          alt=""
+          style={{
+            position:'absolute', inset:0, zIndex:50, pointerEvents:'none',
+            width:'100%', height:'100%', objectFit:'cover',
+          }}
+        />
+      )}
+
+      {/* Vignette หลัง flash */}
+      {step >= 3 && (
+        <div style={{
+          position:'absolute', inset:0, pointerEvents:'none', zIndex:5,
+          background:'radial-gradient(ellipse 55% 70% at 50% 42%, transparent 0%, rgba(0,0,0,0.72) 100%)',
+          animation:'vignette-in 1.2s ease both',
+        }} />
+      )}
+
+      <div style={{ position:'relative', zIndex:10, display:'flex', flexDirection:'column', alignItems:'center', gap:'1.8rem' }}>
+        <div style={{
+          width:'min(340px,82vw)', aspectRatio:'4/5', borderRadius:'3px',
+          overflow:'hidden', background:'#0a0a0a',
+          boxShadow:'0 32px 80px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06)',
+          opacity: step >= 3 ? 1 : 0,
+        }}>
+          {imageUrl
+            ? <img src={imageUrl} alt="Your face"
+                className={step >= 3 ? 'photo-rise' : ''}
+                style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center 20%', display:'block' }} />
+            : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'5rem' }}>📸</div>
+          }
+        </div>
+
+        {step >= 4 && (
+          <div style={{ textAlign:'center', display:'flex', flexDirection:'column', alignItems:'center', gap:'0.5rem' }}>
+            <p className="label-tag" style={{ fontFamily:"'Cinzel', serif", fontSize:'0.58rem', letterSpacing:'0.5em', color:'rgba(255,255,255,0.35)', textTransform:'uppercase', margin:0 }}>EXHIBIT A</p>
+            <div className="line-grow" style={{ width:40, height:'1px', background:'rgba(255,255,255,0.2)' }} />
+            <p className="label-title" style={{ fontFamily:"'Cinzel', serif", fontSize:'clamp(1.2rem,3.5vw,1.5rem)', fontWeight:900, color:'#fff', letterSpacing:'0.08em', textShadow:'0 2px 24px rgba(0,0,0,0.9)', margin:0 }}>หน้าตาของราชา b main</p>
           </div>
-          <div className="label-rise text-center">
-            <p style={{ fontFamily: "'Cinzel', serif", fontSize: "0.6rem", letterSpacing: "0.5em", color: "rgba(251,191,36,0.65)", textTransform: "uppercase", marginBottom: "0.4rem" }}>EXHIBIT A</p>
-            <p style={{ fontFamily: "'Cinzel', serif", fontSize: "1.4rem", fontWeight: 900, color: "#fff", letterSpacing: "0.06em", textShadow: "0 2px 16px rgba(0,0,0,0.9)" }}>หน้าตาของราชา b main</p>
-          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Phase 3 – cinematic meme reveal: slow zoom + title card
+───────────────────────────────────────────────────────────────*/
+function PhaseMeme({ memeUrl, creature }) {
+  const [step, setStep] = useState(0) // 0=black, 1=vs-line, 2=meme-in, 3=creature-in
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setStep(1), 200)
+    const t2 = setTimeout(() => { setStep(2); playBoom() }, 700)  // เสียงตอนมีมโผล่
+    const t3 = setTimeout(() => setStep(3), 1400)
+    return () => { [t1,t2,t3].forEach(clearTimeout) }
+  }, [])
+
+  return (
+    <section style={{
+      minHeight: '100dvh', background: '#06060a', overflow: 'hidden',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      gap: '2rem', position: 'relative',
+    }}>
+      <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap' />
+      <style>{`
+        @keyframes vs-reveal {
+          from { opacity: 0; letter-spacing: 0.8em; }
+          to   { opacity: 1; letter-spacing: 0.35em; }
+        }
+        @keyframes meme-zoom {
+          from { opacity: 0; transform: scale(1.08); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+        @keyframes creature-slide {
+          from { opacity: 0; transform: translateY(14px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes badge-in {
+          0%   { opacity: 0; transform: scale(0.6) rotate(20deg); }
+          70%  { transform: scale(1.1) rotate(10deg); }
+          100% { opacity: 1; transform: scale(1)   rotate(12deg); }
+        }
+        @keyframes hr-expand {
+          from { transform: scaleX(0); } to { transform: scaleX(1); }
+        }
+        .vs-reveal      { animation: vs-reveal 0.7s cubic-bezier(0.22,1,0.36,1) both; }
+        .meme-zoom      { animation: meme-zoom 0.9s cubic-bezier(0.16,1,0.3,1) both; }
+        .creature-slide { animation: creature-slide 0.55s cubic-bezier(0.22,1,0.36,1) both; }
+        .badge-in       { animation: badge-in 0.45s cubic-bezier(0.34,1.56,0.64,1) 0.2s both; }
+        .hr-expand      { animation: hr-expand 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both; transform-origin: center; }
+      `}</style>
+
+      {/* Ambient glow */}
+      <div style={{
+        position: 'absolute', top: '50%', left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '70vw', height: '70vw', maxWidth: 520,
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(250,204,21,0.06) 0%, transparent 65%)',
+        pointerEvents: 'none',
+        transition: 'opacity 0.8s',
+        opacity: step >= 2 ? 1 : 0,
+      }} />
+
+      {/* VS label */}
+      {step >= 1 && (
+        <p className="vs-reveal" style={{
+          fontFamily: "'Cinzel', serif", fontSize: '0.65rem',
+          letterSpacing: '0.35em', color: 'rgba(255,255,255,0.28)',
+          textTransform: 'uppercase', margin: 0,
+        }}>VS</p>
+      )}
+
+      {/* Meme frame */}
+      <div style={{ position: 'relative' }}>
+        <div style={{
+          width: 'min(300px,75vw)', aspectRatio: '1/1',
+          borderRadius: '6px', overflow: 'hidden',
+          background: '#111',
+          boxShadow: step >= 2
+            ? '0 24px 80px rgba(0,0,0,0.9), 0 0 0 1px rgba(250,204,21,0.25)'
+            : '0 24px 80px rgba(0,0,0,0.9)',
+          transition: 'box-shadow 0.6s',
+          opacity: step >= 2 ? 1 : 0,
+        }}>
+          {memeUrl
+            ? <img src={memeUrl} crossOrigin="anonymous" alt={creature}
+                className={step >= 2 ? 'meme-zoom' : ''}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }} />
+            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4rem', background: '#111' }}>🐾</div>
+          }
+        </div>
+
+        {step >= 3 && (
+          <div className="badge-in" style={{
+            position: 'absolute', top: '-12px', right: '-12px',
+            background: '#facc15', color: '#000',
+            fontFamily: 'monospace', fontWeight: 900, fontSize: '0.65rem',
+            letterSpacing: '0.08em', padding: '4px 9px', borderRadius: '3px',
+            boxShadow: '0 4px 16px rgba(250,204,21,0.4)',
+          }}>MATCH</div>
+        )}
+      </div>
+
+      {/* Creature name */}
+      {step >= 3 && (
+        <div className="creature-slide" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.6rem' }}>
+          <div className="hr-expand" style={{ width: 32, height: '1px', background: 'rgba(250,204,21,0.5)' }} />
+          <p style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: 'clamp(1.6rem, 4vw, 2.2rem)',
+            fontWeight: 900, color: '#fff', letterSpacing: '0.06em',
+            textTransform: 'uppercase', margin: 0,
+            textShadow: '0 0 40px rgba(250,204,21,0.2)',
+          }}>{creature || 'ANIMAL'}</p>
+          <p style={{
+            fontFamily: 'monospace', fontSize: '0.6rem',
+            color: 'rgba(255,255,255,0.22)', letterSpacing: '0.3em', margin: 0,
+          }}>ใช่มั้ยว่ะ???</p>
         </div>
       )}
     </section>
   )
 }
 
-/* ─────────────────────────────────────────────────────────────
-   Phase 3 – the meme reveal
-───────────────────────────────────────────────────────────────*/
-function PhaseMeme({ memeUrl, creature }) {
-  const [visible, setVisible] = useState(false)
-  const [textIn, setTextIn] = useState(false)
-  
-  useEffect(() => {
-    const t1 = setTimeout(() => setVisible(true), 100)
-    const t2 = setTimeout(() => setTextIn(true), 500)
-    return () => { clearTimeout(t1); clearTimeout(t2) }
-  }, [])
-
-  return (
-    <section className="relative min-h-dvh bg-black text-white overflow-hidden flex flex-col items-center justify-center gap-6">
-      <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap' />
-      <style>{`
-        @keyframes zoom-shake { 0%{transform:scale(0.3) rotate(15deg);opacity:0} 50%{transform:scale(1.08) rotate(-3deg);opacity:1} 70%{transform:scale(0.97) rotate(1deg)} 100%{transform:scale(1) rotate(0deg);opacity:1} }
-        @keyframes text-smash { 0%{transform:scaleY(3) translateY(-20px);opacity:0} 60%{transform:scaleY(0.9) translateY(2px);opacity:1} 100%{transform:scaleY(1) translateY(0);opacity:1} }
-        .zoom-shake{animation:zoom-shake 0.6s cubic-bezier(0.22,1,0.36,1) both}
-        .text-smash{animation:text-smash 0.4s cubic-bezier(0.22,1,0.36,1) both}
-      `}</style>
-      <div className={`transition-all ${textIn ? 'text-smash' : 'opacity-0'}`} style={{ fontFamily: 'Impact,Arial Black,sans-serif', fontSize: '2rem', letterSpacing: '0.05em', color: '#fff', WebkitTextStroke: '2px black', textShadow: '2px 2px 0 #000,-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000', textAlign: 'center', lineHeight: 1.1 }}>เทียบกับ</div>
-      <div className={`relative ${visible ? 'zoom-shake' : 'opacity-0'}`}>
-        <div className="w-72 h-72 overflow-hidden border-8 border-white shadow-[0_0_60px_rgba(255,255,0,0.3)]">
-          {memeUrl 
-            ? <img src={memeUrl} crossOrigin="anonymous" alt={creature} className="w-full h-full object-cover" /> 
-            : <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-7xl">🐾</div>}
-        </div>
-        <div className="absolute -top-4 -right-4 bg-yellow-400 text-black font-black text-xs px-2 py-1 rotate-12 font-mono">MATCH</div>
-      </div>
-      <div className={`transition-all delay-200 ${textIn ? 'text-smash' : 'opacity-0'}`} style={{ fontFamily: 'Impact,Arial Black,sans-serif', fontSize: '2.5rem', letterSpacing: '0.05em', color: '#facc15', WebkitTextStroke: '2px black', textShadow: '3px 3px 0 #000,-3px -3px 0 #000,3px -3px 0 #000,-3px 2px 0 #000', textAlign: 'center', lineHeight: 1, textTransform: 'uppercase' }}>{creature || 'ANIMAL'}</div>
-      <p className={`transition-all delay-300 text-neutral-600 font-mono text-xs tracking-widest text-center ${textIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>ใช่มั้ยว่ะ???</p>
-    </section>
-  )
-}
 
 /* ─────────────────────────────────────────────────────────────
     Phase 4 – The Final Result & Photo Strip
@@ -472,9 +617,9 @@ function ResultPage({ result, onScanAgain, onBackHome }) {
     setProcessedUrls({ scanImg, photos, memes })
 
     const timings = [
-      setTimeout(() => setPhase(2), 3000),
-      setTimeout(() => setPhase(3), 6000),
-      setTimeout(() => setPhase(4), 9000),
+      setTimeout(() => setPhase(2), 4000),   // เดิม 3000
+      setTimeout(() => setPhase(3), 9000),  // เดิม 6000
+      setTimeout(() => setPhase(4), 12000),  // เดิม 9000
     ]
     return () => timings.forEach(clearTimeout)
   }, [result])
