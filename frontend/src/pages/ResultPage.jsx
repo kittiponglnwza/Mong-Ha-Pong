@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { getAnimalProfile } from '../utils/animalProfile'
 import end1Bg from '../assets/end_1.jpg'
+import html2canvas from 'html2canvas'
 
 /* ─────────────────────────────────────────────────────────────
    Phase 1 – minimal: photo bg + float-up text
@@ -109,29 +110,92 @@ function PhaseMeme({ memeUrl, creature }) {
 }
 
 /* ─────────────────────────────────────────────────────────────
-    Phase 4 – FIXED: Responsive Screen Fit + Custom Asset Background (Enhanced Colors)
+    Phase 4 – FIXED: Base64 Image Conversion + Save Image
 ───────────────────────────────────────────────────────────────*/
 function PhaseResult({ result, onScanAgain, onBackHome }) {
   const animalProfile = getAnimalProfile(result)
   const score = result?.animal_score ?? result?.npc_score ?? 0
   const barRef = useRef(null)
+  const photoCardRef = useRef(null) 
+  const [isSaving, setIsSaving] = useState(false)
+  
+  // 🔥 สร้าง State เพื่อเก็บรูปที่แปลงเป็น Base64 แล้ว
+  const [memeBase64, setMemeBase64] = useState('')
+  const [userBase64, setUserBase64] = useState('')
 
+  // จัดการ Score Bar Animation
   useEffect(() => {
     const t = setTimeout(() => {
       if (barRef.current) barRef.current.style.width = `${score}%`
     }, 800)
     return () => clearTimeout(t)
   }, [score])
+// 🔥 1. ฟังก์ชันดึงรูปจาก URL มาแปลงเป็น Base64 พร้อมตัวทะลวงแคช (Cache Buster)
+  useEffect(() => {
+    const fetchAsBase64 = async (url, setter) => {
+      if (!url) return;
+      try {
+        // ทริคทะลวงแคช: เช็คว่า URL มีเครื่องหมาย ? หรือยัง แล้วเติมค่าเวลา (Timestamp) ต่อท้าย
+        const cacheBuster = url.includes('?') ? `&t=${Date.now()}` : `?t=${Date.now()}`;
+        
+        // สั่ง fetch ไปที่ URL ใหม่ที่แถม Timestamp ไปด้วย
+        const res = await fetch(url + cacheBuster);
+        
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        
+        const blob = await res.blob();
+        const reader = new FileReader();
+        reader.onloadend = () => setter(reader.result);
+        reader.readAsDataURL(blob);
+      } catch (err) {
+        console.error("Failed to fetch image for base64 conversion:", err);
+      }
+    };
+
+    fetchAsBase64(result.matched_meme_url, setMemeBase64);
+    fetchAsBase64(result.scanImageUrl, setUserBase64);
+  }, [result.matched_meme_url, result.scanImageUrl]);
+
+  // 📸 2. ฟังก์ชันบันทึกรูปภาพ (Photo Strip) ที่หายไป นำกลับมาวางคืนให้ถูกตำแหน่ง
+  const handleSaveImage = async () => {
+    if (!photoCardRef.current || isSaving) return;
+    try {
+      setIsSaving(true);
+      
+      const canvas = await html2canvas(photoCardRef.current, {
+        useCORS: true,        
+        backgroundColor: '#f7f3eb', 
+        scale: 2,            
+        onclone: (clonedDoc) => {
+          const clonedCard = clonedDoc.getElementById('download-photo-card');
+          if (clonedCard) {
+            clonedCard.style.transform = 'none';  
+            clonedCard.style.animation = 'none';  
+          }
+        }
+      });
+      
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `b-main-${result.creature || 'result'}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (error) {
+      console.error('Failed to save image:', error);
+      alert('ไม่สามารถบันทึกรูปภาพได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <section style={{
       minHeight: '100dvh',
-      // ปรับให้เลเยอร์มืดลงเล็กน้อยเพื่อให้แสงไฟสีส้ม/ทองด้านบนเด่นขึ้นมาอย่างชัดเจน
       backgroundImage: `linear-gradient(135deg, rgba(5, 5, 12, 0.94) 0%, rgba(10, 10, 22, 0.97) 100%), url(${end1Bg})`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundAttachment: 'fixed',
-      color: '#f8f6f2', // ปรับอักษรหลักให้ขาวนวลสว่างขึ้น
+      color: '#f8f6f2',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -158,7 +222,6 @@ function PhaseResult({ result, onScanAgain, onBackHome }) {
         .photo-card { animation: scale-in 0.5s cubic-bezier(0.16,1,0.3,1) 0.15s both; }
         .drift { animation: drift 5s ease-in-out infinite; }
         
-        /* ปรับ Shimmer ไล่สีของหัวข้อสิ่งมีชีวิตให้สว่างวาบและอิ่มสีมากขึ้น */
         .creature-shimmer {
           background: linear-gradient(90deg, #ffffff 0%, #fff7ed 15%, #ff7849 35%, #f59e0b 50%, #ff7849 65%, #fff7ed 85%, #ffffff 100%);
           background-size: 200% auto;
@@ -170,10 +233,14 @@ function PhaseResult({ result, onScanAgain, onBackHome }) {
         .glow-btn { transition: all 0.2s; }
         .glow-btn:hover { box-shadow: 0 0 28px rgba(249,115,22,0.55); transform: translateY(-1px); }
         .glow-btn:active { transform: scale(0.98); }
+        
+        .save-btn { transition: all 0.2s; background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%); color: #fff; border: none; }
+        .save-btn:hover { box-shadow: 0 0 28px rgba(245,158,11,0.6); transform: translateY(-1px); }
+        .save-btn:active { transform: scale(0.98); }
+
         .ghost-btn { transition: all 0.2s; }
         .ghost-btn:hover { border-color: rgba(255,255,255,0.4) !important; color: #fff !important; background: rgba(255,255,255,0.03); }
         
-        /* ปรับ Tag Pill ให้ชัดขึ้นเวลา Hover */
         .tag-pill { transition: all 0.15s; cursor: default; }
         .tag-pill:hover { background: rgba(249,115,22,0.15); border-color: rgba(249,115,22,0.4); color: #ff9a52; }
         .photo-strip-img { transition: filter 0.3s; }
@@ -216,7 +283,6 @@ function PhaseResult({ result, onScanAgain, onBackHome }) {
         }
       `}</style>
 
-      {/* ── Ambient Orbs (เพิ่มความเข้มของไฟ Ambient ด้านหลัง) ── */}
       <div style={{ position: 'fixed', top: '-10%', right: '-10%', width: '50vw', height: '50vw', maxWidth: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(249,115,22,0.12) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ position: 'fixed', bottom: '-10%', left: '-10%', width: '40vw', height: '40vw', maxWidth: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
 
@@ -227,7 +293,7 @@ function PhaseResult({ result, onScanAgain, onBackHome }) {
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.55rem', letterSpacing: '0.3em', color: 'rgba(249,115,22,0.6)', textTransform: 'uppercase', margin: 0, fontWeight: 500 }}>YOU ↔ MATCH</p>
 
-            <div className="drift photo-card" style={{
+            <div className="drift photo-card" id="download-photo-card" ref={photoCardRef} style={{
               background: 'linear-gradient(160deg, #ffffff 0%, #f7f3eb 100%)',
               padding: 'clamp(6px, 1.2vw, 12px) clamp(6px, 1.2vw, 12px) clamp(22px, 3.5vw, 32px)',
               display: 'flex',
@@ -248,16 +314,21 @@ function PhaseResult({ result, onScanAgain, onBackHome }) {
                 'grayscale(0.3) contrast(1.15)',
               ].map((filter, i) => (
                 <div key={i} style={{ display: 'flex', gap: 'clamp(4px, 0.8vw, 6px)' }}>
+                  
+                  {/* 🔥 ใช้รูป Base64 ฝั่ง You */}
                   <div style={{ flex: 1, aspectRatio: '1/1', overflow: 'hidden', background: '#d1d1d1' }}>
                     {result.scanImageUrl
-                      ? <img src={result.scanImageUrl} alt="You" className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter }} />
-                      : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifycontent: 'center', fontSize: '1.2rem', background: '#e5e5e5' }}>📸</div>}
+                      ? <img src={userBase64 || result.scanImageUrl} crossOrigin="anonymous" alt="You" className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter }} />
+                      : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: '#e5e5e5' }}>📸</div>}
                   </div>
+                  
+                  {/* 🔥 ใช้รูป Base64 ฝั่ง Meme */}
                   <div style={{ flex: 1, aspectRatio: '1/1', overflow: 'hidden', background: '#d1d1d1' }}>
                     {result.matched_meme_url
-                      ? <img src={result.matched_meme_url} alt={animalProfile.title} className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', filter }} />
-                      : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifycontent: 'center', fontSize: '1.2rem', background: '#e5e5e5' }}>🐾</div>}
+                      ? <img src={memeBase64 || result.matched_meme_url} crossOrigin="anonymous" alt={animalProfile.title} className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', filter }} />
+                      : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: '#e5e5e5' }}>🐾</div>}
                   </div>
+
                 </div>
               ))}
 
@@ -277,7 +348,6 @@ function PhaseResult({ result, onScanAgain, onBackHome }) {
         {/* ══ ฝั่งขวา: รายละเอียดข้อมูลต่างๆ ══ */}
         <div className="col-right">
           
-          {/* Header Title */}
           <div className="r1" style={{ marginBottom: 'clamp(0.8rem, 1.5vw, 1.2rem)' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
               <div style={{ height: '1px', width: 24, background: 'rgba(249,115,22,0.6)' }} />
@@ -296,7 +366,6 @@ function PhaseResult({ result, onScanAgain, onBackHome }) {
 
           <div className="r2" style={{ width: '100%', height: '1px', background: 'linear-gradient(90deg, rgba(249,115,22,0.35) 0%, rgba(255,255,255,0.08) 70%, transparent 100%)', marginBottom: 'clamp(1rem, 2vw, 1.5rem)' }} />
 
-          {/* Match Score Card (เพิ่มความเข้มข้นกล่องและข้อความบรรยายด้านใน) */}
           <div className="r4" style={{ width: '100%', marginBottom: 'clamp(0.8rem, 1.5vw, 1.2rem)' }}>
             <div style={{
               background: 'linear-gradient(135deg, rgba(249,115,22,0.12) 0%, rgba(245,158,11,0.04) 100%)',
@@ -319,15 +388,13 @@ function PhaseResult({ result, onScanAgain, onBackHome }) {
               </div>
               <div style={{ flex: 1, maxWidth: 280 }}>
                 <div style={{ height: '5px', background: 'rgba(255,255,255,0.08)', borderRadius: 99, overflow: 'hidden', marginBottom: '0.5rem' }}>
-                  <div ref={barRef} style={{ height: '100%', width: '0%', borderRadius: 99, background: 'linear-gradient(90deg, #ea580c, #f59e0b)', transition: 'width 1.4s cubic-bezier(0.16,1,0.3,1)', boxShadow: '0 0 10px rgba(249,115,22,0.7)' }} />
+                  <div ref={barRef} style={{ height: '100%', width: '0%', borderRadius: 99, background: 'linear-gradient(90deg, #ea580c, #ff7849)', transition: 'width 1.4s cubic-bezier(0.16,1,0.3,1)', boxShadow: '0 0 10px rgba(249,115,22,0.7)' }} />
                 </div>
-                {/* ดึงข้อความบรรยายให้อ่านง่ายขึ้น ไม่จม */}
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontStyle: 'italic', fontSize: '0.75rem', color: '#e5e7eb', margin: 0, letterSpacing: '0.02em', lineHeight: 1.35, fontWeight: 400 }}>"{animalProfile.description}"</p>
               </div>
             </div>
           </div>
 
-          {/* Stats Cards Row (ปรับขอบบน ขอบข้าง และสีของค่าพลังให้ออกมาจัดจ้านตามธีมสีกรอง) */}
           <div className="r5" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: 'clamp(0.8rem, 1.5vw, 1.2rem)' }}>
             {[
               { label: 'Aura', val: result.aura, icon: '✦', accent: 'rgba(249,115,22,', textColor: '#ff9a52' },
@@ -351,20 +418,42 @@ function PhaseResult({ result, onScanAgain, onBackHome }) {
             ))}
           </div>
 
-          {/* Tags List (ปรับตัวหนังสือแฮชแท็กให้ออกขาวสว่างชัด) */}
           <div className="r6" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'flex-start', width: '100%', marginBottom: 'clamp(1.2rem, 2.5vw, 1.8rem)' }}>
             {animalProfile.tags.map((tag) => (
               <span key={tag} className="tag-pill" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.68rem', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.03)', padding: '5px 14px', borderRadius: 99 }}>{tag}</span>
             ))}
           </div>
 
-          {/* Action Buttons Container (ปรับแต่งปุ่มสแกนใหม่ให้ชัดไม่ซีดจาง) */}
-          <div className="r7" style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.6rem' }}>
-            <button onClick={onScanAgain} className="ghost-btn" style={{ fontFamily: "'DM Sans', sans-serif", background: 'transparent', border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.65)', fontSize: '0.82rem', padding: '0.8rem', borderRadius: 12, cursor: 'pointer', letterSpacing: '0.02em', fontWeight: 500 }}>สแกนใหม่</button>
-            <button onClick={onBackHome} className="glow-btn" style={{ fontFamily: "'DM Sans', sans-serif", background: 'linear-gradient(135deg, #ea580c 0%, #ff7849 50%, #f59e0b 100%)', border: 'none', color: '#fff', fontSize: '0.88rem', fontWeight: 600, padding: '0.8rem', borderRadius: 12, cursor: 'pointer', letterSpacing: '0.03em', textShadow: '0 1px 3px rgba(0,0,0,0.35)' }}>กลับหน้าแรก</button>
+          <div className="r7" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+            
+            <button 
+              onClick={handleSaveImage} 
+              className="save-btn" 
+              style={{ 
+                fontFamily: "'DM Sans', sans-serif", 
+                fontSize: '0.88rem', 
+                fontWeight: 600, 
+                padding: '0.85rem', 
+                borderRadius: 12, 
+                cursor: isSaving ? 'not-allowed' : 'pointer', 
+                letterSpacing: '0.03em', 
+                textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem'
+              }}
+            >
+              {isSaving ? 'กำลังบันทึกรูปภาพ...' : '📸 บันทึกรูปภาพ (Photo Strip)'}
+            </button>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+              <button onClick={onScanAgain} className="ghost-btn" style={{ fontFamily: "'DM Sans', sans-serif", background: 'transparent', border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.65)', fontSize: '0.82rem', padding: '0.8rem', borderRadius: 12, cursor: 'pointer', letterSpacing: '0.02em', fontWeight: 500 }}>สแกนใหม่</button>
+              <button onClick={onBackHome} className="glow-btn" style={{ fontFamily: "'DM Sans', sans-serif", background: 'linear-gradient(135deg, #ea580c 0%, #ff7849 50%, #f59e0b 100%)', border: 'none', color: '#fff', fontSize: '0.85rem', fontWeight: 600, padding: '0.8rem', borderRadius: 12, cursor: 'pointer', letterSpacing: '0.03em', textShadow: '0 1px 3px rgba(0,0,0,0.35)' }}>กลับหน้าแรก</button>
+            </div>
+
           </div>
 
-          {/* Watermark */}
           <p style={{ fontFamily: 'monospace', fontSize: '0.5rem', color: 'rgba(255,255,255,0.1)', letterSpacing: '0.25em', marginTop: '1.4rem', textTransform: 'uppercase', textAlign: 'left' }}>b main scanner v1.0 · animal identification system</p>
         </div>
 

@@ -8,10 +8,11 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="MemeFace API")
 
+# --- แก้ไขตรงจุดนี้ใน main.py ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=["http://localhost:5173"],  # เจาะจงไปเลยว่าอนุญาตให้พอร์ต Frontend ของเราเข้าถึงได้
+    allow_credentials=True,                    # เปลี่ยนจาก False เป็น True
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"],

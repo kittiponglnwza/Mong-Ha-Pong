@@ -1,3 +1,4 @@
+import random
 from pathlib import Path
 from urllib.parse import quote
 
@@ -19,40 +20,17 @@ else:
 MEME_DIR = Path(__file__).resolve().parents[1] / "memes"
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
+# 1. ปรับหมวดหมู่ให้เหลือ 3 อารมณ์ตามโฟลเดอร์ที่คุณสร้างไว้
 CATEGORY_LABELS = {
-    "npc": ("NPC Stare", "blank lobby energy", "Common"),
-    "tired": ("Tired Mode", "running on low battery and vibes", "Uncommon"),
-    "sleepy": ("Sleepy Spirit", "half awake, fully mysterious", "Uncommon"),
-    "sigma": ("Sigma Face", "quiet confidence with side quest aura", "Rare"),
-    "awkward": ("Awkward Mode", "smiling through the loading screen", "Common"),
-    "angry": ("Angry Meme", "tiny rage, cinematic intensity", "Rare"),
-    "sad": ("Sad Sidequest", "rain cloud with decent posture", "Uncommon"),
-    "hero": ("Hero Pose", "chosen-one lighting found you", "Epic"),
-    "main-character": ("Main Character", "camera-ready plot armor", "Legendary"),
+    "neutral": ("NPC Stare", "just existing in the simulation", "Common"),
+    "Happiness": ("Main Character", "radiating positive energy", "Rare"),
+    "Fear-Surprise": ("Shocked Pikachad", "did not see that plot twist coming", "Epic"),
 }
 
 CATEGORY_EXPRESSIONS = {
-    "npc": "neutral stare",
-    "tired": "low eye openness",
-    "sleepy": "sleepy eyes",
-    "sigma": "tilted confident stare",
-    "awkward": "open mouth or tense smile",
-    "angry": "low brow pressure",
-    "sad": "downturned mouth curve",
-    "hero": "wide eyes and upright face",
-    "main-character": "bright eyes and camera smile",
-}
-
-CATEGORY_IMAGE_HINTS = {
-    "npc": ["#meme", "download", "ดาวน์โหลด"],
-    "tired": ["monkey", "thinking"],
-    "sleepy": ["monkey", "thinking"],
-    "sigma": ["doge", "dogesh", "dog"],
-    "awkward": ["🙈", "meme"],
-    "angry": ["doge", "dogesh", "dog"],
-    "sad": ["🙈", "meme"],
-    "hero": ["butterfly", "life", "kpop"],
-    "main-character": ["butterfly", "life", "kpop"],
+    "neutral": "blank stare",
+    "Happiness": "bright smile",
+    "Fear-Surprise": "wide eyes and open mouth",
 }
 
 SELECTED_LANDMARKS = {
@@ -69,24 +47,22 @@ SELECTED_LANDMARKS = {
 }
 
 
-def list_meme_images():
-    if not MEME_DIR.exists():
-        return []
-    return sorted(
-        path
-        for path in MEME_DIR.iterdir()
-        if path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS
-    )
-
-
-def select_meme_image(category, meme_images):
-    hints = CATEGORY_IMAGE_HINTS.get(category, [])
-    for hint in hints:
-        for image_path in meme_images:
-            if hint.lower() in image_path.stem.lower():
-                return image_path
-    index = list(CATEGORY_LABELS).index(category) % len(meme_images)
-    return meme_images[index]
+# 2. ฟังก์ชันเลือกรูปจากโฟลเดอร์ที่ตรงกับชื่อหมวดหมู่อารมณ์
+def select_meme_image(category):
+    category_dir = MEME_DIR / category
+    
+    # ถ้ามีโฟลเดอร์อารมณ์นี้ ให้ดึงรูปทั้งหมดในนั้นมาสุ่ม
+    if category_dir.exists():
+        meme_images = [
+            path for path in category_dir.iterdir()
+            if path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS
+        ]
+        if meme_images:
+            return random.choice(meme_images)
+            
+    # กรณีฉุกเฉิน (โฟลเดอร์ว่าง หรือหาไม่เจอ) ให้ดึงรูปอะไรก็ได้ในโฟลเดอร์ memes มาแทน
+    all_images = [p for p in MEME_DIR.rglob("*") if p.is_file() and p.suffix.lower() in IMAGE_EXTENSIONS]
+    return random.choice(all_images) if all_images else None
 
 
 def point(landmarks, index):
@@ -162,6 +138,7 @@ def extract_selected_landmarks(landmarks):
     }
 
 
+# 3. แก้ไขสูตรประเมินหน้าให้จับ 3 อารมณ์
 def classify_meme(features):
     eye_open = features["eye_open"]
     mouth_open = features["mouth_open"]
@@ -172,15 +149,9 @@ def classify_meme(features):
     face_ratio = features["face_ratio"]
 
     scores = {
-        "npc": 55 + (1 - abs(eye_open - 0.23)) * 12 - abs(mouth_open - 0.08) * 80,
-        "tired": 45 + max(0, 0.22 - eye_open) * 130 + max(0, 0.08 - brow_gap) * 80,
-        "sleepy": 50 + max(0, 0.19 - eye_open) * 180 + max(0, 0.05 - mouth_open) * 80,
-        "sigma": 48 + head_tilt * 180 + max(0, 0.18 - mouth_open) * 40 + brow_tilt * 120,
-        "awkward": 50 + max(0, mouth_open - 0.14) * 95 + max(0, smile_curve) * 180,
-        "angry": 46 + max(0, 0.085 - brow_gap) * 210 + max(0, 0.16 - eye_open) * 70,
-        "sad": 48 + max(0, -smile_curve) * 230 + max(0, 0.22 - eye_open) * 50,
-        "hero": 44 + max(0, eye_open - 0.26) * 150 + max(0, face_ratio - 1.35) * 30,
-        "main-character": 52 + max(0, eye_open - 0.24) * 100 + max(0, smile_curve) * 120,
+        "neutral": 60 - abs(smile_curve) * 100 - abs(mouth_open - 0.05) * 50,
+        "Happiness": 40 + max(0, smile_curve) * 200 + max(0, eye_open - 0.20) * 50,
+        "Fear-Surprise": 40 + max(0, mouth_open - 0.15) * 150 + max(0, eye_open - 0.26) * 150
     }
 
     category = max(scores, key=scores.get)
@@ -215,9 +186,10 @@ def analyze_face_meme(image_bytes):
             detail=f"Face analysis dependencies are missing: {IMPORT_ERROR.name}",
         )
 
-    meme_images = list_meme_images()
-    if not meme_images:
-        raise HTTPException(status_code=404, detail="No meme images found")
+    # เช็คว่ามีรูปในระบบทั้งหมดไหม
+    all_images = [p for p in MEME_DIR.rglob("*") if p.is_file() and p.suffix.lower() in IMAGE_EXTENSIONS]
+    if not all_images:
+        raise HTTPException(status_code=404, detail="No meme images found in any folder")
 
     image = decode_image(image_bytes)
     rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -234,14 +206,16 @@ def analyze_face_meme(image_bytes):
 
     faces = result.multi_face_landmarks or []
 
-    # ไม่เจอหน้า → return default แทน throw error
+    # กรณีหาหน้าคนไม่เจอ (Fallback เป็น neutral)
     if not faces:
-        default_meme = meme_images[0]
-        encoded_name = quote(default_meme.name)
+        default_meme = random.choice(all_images)
+        relative_path = default_meme.relative_to(MEME_DIR)
+        encoded_path = quote(str(relative_path).replace("\\", "/"))
+        
         return {
             "creature": "Unknown Beast",
-            "category": "npc",
-            "expression": CATEGORY_EXPRESSIONS["npc"],
+            "category": "neutral",
+            "expression": CATEGORY_EXPRESSIONS["neutral"],
             "animal_score": 0,
             "meme_score": 0,
             "confidence": 0,
@@ -251,7 +225,7 @@ def analyze_face_meme(image_bytes):
             "rarity": "Common",
             "animal_vibe": "same chaotic animal frequency",
             "matched_meme_name": default_meme.name,
-            "matched_meme_url": f"http://localhost:8002/memes/{encoded_name}",
+            "matched_meme_url": f"http://localhost:8002/memes/{encoded_path}",
             "face_detected": False,
             "face_count": 0,
             "analysis_method": "mediapipe-face-mesh-rules",
@@ -267,8 +241,15 @@ def analyze_face_meme(image_bytes):
     category, confidence, category_scores = classify_meme(features)
     creature, animal_vibe, default_rarity = CATEGORY_LABELS[category]
     rarity = rarity_from_confidence(default_rarity, confidence)
-    matched_image = select_meme_image(category, meme_images)
-    encoded_name = quote(matched_image.name)
+    
+    # 4. เรียกรูปและแปลง URL ให้ต่อโฟลเดอร์อารมณ์ถูกต้อง
+    matched_image = select_meme_image(category)
+    if matched_image:
+        relative_path = matched_image.relative_to(MEME_DIR)
+        encoded_path = quote(str(relative_path).replace("\\", "/"))
+        final_meme_url = f"http://localhost:8002/memes/{encoded_path}"
+    else:
+        final_meme_url = ""
 
     aura = clamp(
         50
@@ -292,8 +273,8 @@ def analyze_face_meme(image_bytes):
         "braincells": braincells,
         "rarity": rarity,
         "animal_vibe": animal_vibe,
-        "matched_meme_name": matched_image.name,
-        "matched_meme_url": f"http://localhost:8002/memes/{encoded_name}",  # แก้ port 8000 → 8001
+        "matched_meme_name": matched_image.name if matched_image else "Unknown",
+        "matched_meme_url": final_meme_url,
         "face_detected": True,
         "face_count": len(faces),
         "analysis_method": "mediapipe-face-mesh-rules",

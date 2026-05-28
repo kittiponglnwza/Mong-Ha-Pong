@@ -1,0 +1,3 @@
+cd C:\Projects\Mong-Ha-Pong\backend
+call venv\Scripts\activate
+uvicorn app.main:app --reload --port 8002
