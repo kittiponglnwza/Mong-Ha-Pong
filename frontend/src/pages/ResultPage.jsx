@@ -298,7 +298,20 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
     : null
   const missCount = reflexData.filter(r => r.verdict !== 'perfect').length
 
-  // 🎯 AI Reflex Roast
+  // 🎯 Reflex Roast — random pick จาก pool คงที่ ไม่ต้องเรียก API
+  const ROAST_POOL = [
+    { title: 'Aim ดี แต่สมอง AFK',       sub: 'reaction ไวเหมือนใช้ config โปร แต่ decision making ยัง Bronze ติดพื้น',              color: '#ff4444' },
+    { title: 'Radiant ในฝัน',             sub: 'ยิงโดนไม่กี่นัดแล้วคิดว่าตัวเองขึ้นโปรลีกได้ ทั้งที่ชีวิตจริงยังแพ้ tutorial',      color: '#ff6600' },
+    { title: 'Crosshair เทพ คนเล่นกาก',   sub: 'เซ็ต sensitivity มาอย่างเทพ แต่คนจับเมาส์ยังเหมือน NPC หลงแมพ',                      color: '#ff4488' },
+    { title: 'Reaction ไวเกินพ่อ',        sub: 'เร็วแบบนี้ไม่รู้ฝึก aim หรือโดนไฟดูดตอนคลิกเมาส์',                                  color: '#ff4444' },
+    { title: 'Grandpa Flick Machine',     sub: 'ลากเมาส์เหมือนกำลังเขียนจดหมายลาโลก ไม่ใช่เล่น FPS',                               color: '#ff6600' },
+    { title: 'Aimlabs Victim',            sub: 'ซ้อม aim มาเป็นร้อยชั่วโมง สุดท้ายยังยิงกำแพงเก่งกว่าศัตรู',                        color: '#ff4444' },
+    { title: 'Fake Talon Player',         sub: 'กดไวเหมือนคนเก่ง แต่พอดูจริงๆคือ panic click ล้วนๆ',                                color: '#ff4488' },
+    { title: 'Human Delay 300ms',         sub: 'อินเทอร์เน็ตบ้านยังตอบสนองเร็วกว่ามือมึงอีก',                                       color: '#ff6600' },
+    { title: 'Bot Detected 🤖',           sub: 'reaction ต่ำผิดมนุษย์ ขนาด AI ยังสงสาร social skill มึง',                           color: '#ff4444' },
+    { title: 'One Tap แต่ One Braincell', sub: 'ยิงเข้าเป้าก็จริง แต่ IQ gameplay ยังต่ำกว่า FPS ที่เล่น',                          color: '#ff4488' },
+  ]
+
   const [roast, setRoast] = useState({ title: '...', sub: '...', color: 'rgba(255,255,255,0.2)' })
   const [roastLoading, setRoastLoading] = useState(true)
 
@@ -308,46 +321,10 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
       setRoastLoading(false)
       return
     }
-    const fetchReflexRoast = async () => {
-      try {
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 1000,
-            system: 'คุณคือโค้ช FPS ที่ toxic และ bully ตลอดเวลา ไม่ว่า aim จะดีแค่ไหนก็ด่าเสมอ ถ้าเก่งก็หาเรื่องด่าเรื่องอื่น ตอบเป็น JSON เท่านั้น ไม่มี markdown format: {"title":"...","sub":"...","color":"..."} title คือหัวข้อสั้นโหด (3-5 คำ ภาษาไทยหรือ English mixed), sub คือประโยคซ้ำเติมยาวขึ้นหน่อย, color คือ hex color สีส้มหรือแดงเท่านั้น (#ff4444 หรือ #ff6600 หรือ #ff4488)',
-            messages: [{
-              role: 'user',
-              content: 'วิเคราะห์ aim แล้วบูลลี่:\n' +
-                '- hit: ' + perfectRounds.length + ' รอบ\n' +
-                '- miss: ' + missCount + ' รอบ\n' +
-                '- avg reaction time: ' + (avgReflex !== null ? avgReflex + 'ms' : 'ไม่มีข้อมูล (กดก่อนผีโผล่ทุกรอบ)') + '\n\n' +
-                'ถ้า avg ต่ำมาก (ไวมาก) ให้สงสัยว่าโกง หรือบอกว่าเก่ง FPS แต่ชีวิตจริงยังไม่มีแฟน ถ้า miss เยอะให้ถล่มซะ ถ้า hit หมดแต่ช้าให้บอกว่า grandma speedrun ห้ามชม ห้ามพูดดีเด็ดขาด'
-            }]
-          })
-        })
-        const data = await res.json()
-        console.log('[ReflexRoast] API response:', data)
-        if (data.error) throw new Error(data.error.message || 'API error')
-        const text = data.content?.find(c => c.type === 'text')?.text || ''
-        const clean = text.replace(/```json|```/g, '').trim()
-        const parsed = JSON.parse(clean)
-        setRoast(parsed)
-      } catch (err) {
-        console.error('[ReflexRoast] failed:', err)
-        if (missCount >= 4) setRoast({ title: 'ไม้เท้ายายยิงปืน', sub: `พลาด ${missCount} รอบ reaction ช้ากว่าคนหมดสติ`, color: '#ff4444' })
-        else if (missCount >= 2) setRoast({ title: 'อย่าเล่น FPS', sub: `พลาด ${missCount} รอบ แค่กดปุ่มยังช่วยตัวเองไม่รอด`, color: '#ff6600' })
-        else if (avgReflex === null) setRoast({ title: 'ยิงก่อนผีโผล่', sub: 'กดก่อนเห็นอะไร = สมองไม่ทำงาน', color: '#ffaa00' })
-        else if (avgReflex < 150) setRoast({ title: 'Bot ใช่มั้ย 🤖', sub: `avg ${avgReflex}ms เร็วแบบนี้ชีวิตจริงยังไม่มีแฟน`, color: '#ff4488' })
-        else if (avgReflex < 250) setRoast({ title: 'Aim ดี แต่หน้าไม่ดี', sub: `avg ${avgReflex}ms ไวแต่แพ้ตอนเปิดกล้อง`, color: '#ff6633' })
-        else if (avgReflex < 400) setRoast({ title: 'Mediocre ทุกมิติ', sub: `avg ${avgReflex}ms กลางๆ เหมือนทุกอย่างในชีวิต`, color: '#ff8844' })
-        else setRoast({ title: 'เดินไปซื้อผักดีกว่า 🥬', sub: `avg ${avgReflex}ms ช้ากว่ายายกด ATM`, color: '#ff4444' })
-      } finally {
-        setRoastLoading(false)
-      }
-    }
-    fetchReflexRoast()
+    // สุ่ม roast จาก pool — ไม่ต้องรอ API เลย instant
+    const picked = ROAST_POOL[Math.floor(Math.random() * ROAST_POOL.length)]
+    setRoast(picked)
+    setRoastLoading(false)
   }, [])
 
   // 🌟 helper แยก request รูปมีม
@@ -684,11 +661,12 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
             </div>
             <h1 className="creature-shimmer" style={{
               fontFamily: "'Cinzel', serif",
-              fontSize: 'clamp(2.4rem, 4.8vw, 4.4rem)',
+              fontSize: 'clamp(1.6rem, 3.6vw, 3.2rem)',
               fontWeight: 900,
-              lineHeight: 0.95,
+              lineHeight: 1,
               margin: '0 0 0.6rem',
               letterSpacing: '-0.01em',
+              whiteSpace: 'nowrap',
             }}>King of B main</h1>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontStyle: 'italic', fontSize: '0.82rem', color: 'rgba(255,255,255,0.4)', margin: 0, letterSpacing: '0.04em', fontWeight: 300 }}>{result.creature}</p>
           </div>
@@ -811,18 +789,18 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
                   <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', color: 'rgba(255,255,255,0.2)', margin: 0, letterSpacing: '0.1em' }}>{reflexData.length} rounds</p>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', minHeight: 32 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   {roastLoading ? (
                     <>
-                      <div style={{ width: 120, height: 18, borderRadius: 4, background: 'rgba(249,115,22,0.1)', animation: 'roast-pulse 1.2s ease-in-out infinite' }} />
-                      <div style={{ width: '1px', height: 22, background: 'rgba(249,115,22,0.2)', flexShrink: 0 }} />
-                      <div style={{ flex: 1, height: 12, borderRadius: 4, background: 'rgba(255,255,255,0.05)', animation: 'roast-pulse 1.2s ease-in-out infinite' }} />
+                      <div style={{ width: 160, height: 20, borderRadius: 4, background: 'rgba(249,115,22,0.1)', animation: 'roast-pulse 1.2s ease-in-out infinite' }} />
+                      <div style={{ width: '100%', height: 13, borderRadius: 4, background: 'rgba(255,255,255,0.05)', animation: 'roast-pulse 1.2s ease-in-out infinite' }} />
+                      <div style={{ width: '75%', height: 13, borderRadius: 4, background: 'rgba(255,255,255,0.04)', animation: 'roast-pulse 1.2s ease-in-out infinite' }} />
                     </>
                   ) : (
                     <>
-                      <p style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(1rem, 2.2vw, 1.3rem)', fontWeight: 700, color: roast.color, margin: 0, whiteSpace: 'nowrap', letterSpacing: '0.02em' }}>{roast.title}</p>
-                      <div style={{ width: '1px', height: 22, background: 'rgba(249,115,22,0.2)', flexShrink: 0 }} />
-                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', margin: 0, fontStyle: 'italic', lineHeight: 1.3, fontWeight: 300 }}>{roast.sub}</p>
+                      <p style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(1.1rem, 2.5vw, 1.45rem)', fontWeight: 700, color: roast.color, margin: 0, letterSpacing: '0.02em', lineHeight: 1.2 }}>{roast.title}</p>
+                      <div style={{ width: 28, height: '1px', background: 'rgba(249,115,22,0.3)' }} />
+                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 'clamp(0.78rem, 1.6vw, 0.88rem)', color: 'rgba(255,255,255,0.5)', margin: 0, fontStyle: 'italic', lineHeight: 1.5, fontWeight: 300 }}>{roast.sub}</p>
                     </>
                   )}
                 </div>
@@ -863,11 +841,11 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
 
           <div className="r7" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             <button onClick={handleSaveImage} className="save-btn" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.88rem', fontWeight: 600, padding: '0.85rem', borderRadius: 12, cursor: isSaving ? 'not-allowed' : 'pointer', letterSpacing: '0.03em', textShadow: '0 1px 2px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-              {isSaving ? 'กำลังบันทึกรูปภาพ...' : '📸 บันทึกรูปภาพ (Photo Strip)'}
+              {isSaving ? 'Saving image...' : 'Save image'}
             </button>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
-              <button onClick={onScanAgain} className="ghost-btn" style={{ fontFamily: "'DM Sans', sans-serif", background: 'transparent', border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.65)', fontSize: '0.82rem', padding: '0.8rem', borderRadius: 12, cursor: 'pointer', letterSpacing: '0.02em', fontWeight: 500 }}>สแกนใหม่</button>
-              <button onClick={onBackHome} className="glow-btn" style={{ fontFamily: "'DM Sans', sans-serif", background: 'linear-gradient(135deg, #ea580c 0%, #ff7849 50%, #f59e0b 100%)', border: 'none', color: '#fff', fontSize: '0.85rem', fontWeight: 600, padding: '0.8rem', borderRadius: 12, cursor: 'pointer', letterSpacing: '0.03em', textShadow: '0 1px 3px rgba(0,0,0,0.35)' }}>กลับหน้าแรก</button>
+              <button onClick={onScanAgain} className="ghost-btn" style={{ fontFamily: "'DM Sans', sans-serif", background: 'transparent', border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.65)', fontSize: '0.82rem', padding: '0.8rem', borderRadius: 12, cursor: 'pointer', letterSpacing: '0.02em', fontWeight: 500 }}>Repeat Scan</button>
+              <button onClick={onBackHome} className="glow-btn" style={{ fontFamily: "'DM Sans', sans-serif", background: 'linear-gradient(135deg, #ea580c 0%, #ff7849 50%, #f59e0b 100%)', border: 'none', color: '#fff', fontSize: '0.85rem', fontWeight: 600, padding: '0.8rem', borderRadius: 12, cursor: 'pointer', letterSpacing: '0.03em', textShadow: '0 1px 3px rgba(0,0,0,0.35)' }}>Back to Home</button>
             </div>
           </div>
           <p style={{ fontFamily: 'monospace', fontSize: '0.5rem', color: 'rgba(255,255,255,0.1)', letterSpacing: '0.25em', marginTop: '1.4rem', textTransform: 'uppercase', textAlign: 'left' }}>b main scanner v1.0 · animal identification system</p>
