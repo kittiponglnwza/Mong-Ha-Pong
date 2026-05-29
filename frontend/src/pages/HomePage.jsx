@@ -396,7 +396,7 @@ export default function HomePage({ onPlay, onAbout }) {
                 fontFamily: 'inherit',
               }}
             >
-              Main Menu
+              PROVE YOUR REFLEX
             </span>
             <div
               className="h-px flex-1"
@@ -407,10 +407,20 @@ export default function HomePage({ onPlay, onAbout }) {
           </div>
 
           {/* Title */}
-          <div className="title-anim" style={{ lineHeight: 0.92 }}>
+          <div
+            className="title-anim"
+            style={{
+              lineHeight: 0.92,
+              display: 'flex',
+              flexWrap: 'nowrap',    // <-- เปลี่ยนเป็น nowrap เพื่อบังคับให้อยู่แถวเดียวกัน
+              alignItems: 'center',
+              gap: '24px',           // ระยะห่างระหว่าง KING OF กับ B MAIN
+              whiteSpace: 'nowrap'   // <-- ล็อกตัวหนังสือไม่ให้ตัดขึ้นบรรทัดใหม่ทุกกรณี
+            }}
+          >
             <div
               style={{
-                fontSize: 'clamp(64px, 9vw, 96px)',
+                fontSize: 'clamp(48px, 7vw, 96px)', // ปรับขนาดเริ่มต้นลงนิดหน่อยจาก 64px เป็น 48px เผื่อเจอจอเล็กจะได้ไม่ล้น
                 fontWeight: 900,
                 textTransform: 'uppercase',
                 letterSpacing: '-0.02em',
@@ -423,7 +433,7 @@ export default function HomePage({ onPlay, onAbout }) {
             </div>
             <div
               style={{
-                fontSize: 'clamp(64px, 9vw, 96px)',
+                fontSize: 'clamp(48px, 7vw, 96px)', // ปรับขนาดให้เท่ากัน
                 fontWeight: 900,
                 textTransform: 'uppercase',
                 letterSpacing: '-0.02em',
@@ -436,7 +446,7 @@ export default function HomePage({ onPlay, onAbout }) {
                 animation: 'glow-battle 4s ease-in-out infinite, shimmer-title 6s linear infinite',
               }}
             >
-              BATTLE
+              B MAIN
             </div>
           </div>
 
@@ -461,7 +471,7 @@ export default function HomePage({ onPlay, onAbout }) {
                 textTransform: 'uppercase',
               }}
             >
-              Season 4 · Live Now
+              “One tap decides everything.”
             </span>
           </div>
 
