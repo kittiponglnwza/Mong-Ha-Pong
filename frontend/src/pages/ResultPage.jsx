@@ -1145,7 +1145,7 @@ function ResultPage({ result, onScanAgain, onBackHome }) {
     setProcessedUrls({ scanImg, photos, memes })
 
     const timings = [
-      setTimeout(() => setPhase(2), 4000),
+      setTimeout(() => setPhase(2), 6000),
       setTimeout(() => setPhase(3), 6000),
       setTimeout(() => setPhase(4), 12000),
     ]
