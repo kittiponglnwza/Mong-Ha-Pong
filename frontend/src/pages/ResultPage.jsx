@@ -1146,8 +1146,8 @@ function ResultPage({ result, onScanAgain, onBackHome }) {
 
     const timings = [
       setTimeout(() => setPhase(2), 6000),
-      setTimeout(() => setPhase(3), 6000),
-      setTimeout(() => setPhase(4), 12000),
+      setTimeout(() => setPhase(3), 9000),
+      setTimeout(() => setPhase(4), 15000),
     ]
     return () => timings.forEach(clearTimeout)
   }, [result])

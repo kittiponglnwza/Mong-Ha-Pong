@@ -11,7 +11,26 @@ const instructions = [
   'Fullscreen mode recommended for maximum humiliation',
 ]
 
-// Particle config: position (%), animation duration, delay, size
+// ── Deterministic pseudo-random (stable across renders) ──
+const r = (seed) => { const x = Math.sin(seed) * 10000; return x - Math.floor(x) }
+
+// ── Snow particles: 55 flakes, already "in flight" via negative delay ──
+const SNOW = Array.from({ length: 55 }, (_, i) => {
+  const b = i * 13.7
+  return {
+    left:    r(b)     * 100,           // 0–100% across screen
+    size:    r(b + 1) * 3.5 + 0.8,    // 0.8–4.3px
+    dur:     r(b + 2) * 10 + 9,       // 9–19s fall speed
+    delay:  -(r(b + 3) * 16),         // already mid-fall on load
+    opacity: r(b + 4) * 0.4 + 0.12,   // 0.12–0.52 (soft)
+    blur:    r(b + 5) > 0.68,         // 32% get slight blur (depth)
+    s1:      r(b + 6) * 50 - 25,      // sway at 30% keyframe
+    s2:      r(b + 7) * 50 - 25,      // sway at 65% keyframe
+    s3:      r(b + 8) * 24 - 12,      // sway at 100% keyframe
+  }
+})
+
+// ── Blue rising ambient particles ──
 const PARTICLES = [
   { left: 18, bottom: 12, dur: 7,   delay: 0,   size: 2 },
   { left: 32, bottom: 22, dur: 9,   delay: 1.2, size: 1.5 },
@@ -122,6 +141,26 @@ export default function HowToPlay({ onBegin, onBack }) {
           animation: floatUp var(--dur) ease-out var(--delay) infinite;
         }
 
+        /* ── Snow particles: fall + sway ── */
+        @keyframes snowFall {
+          0%   { transform: translateY(-20px) translateX(0px);        opacity: 0; }
+          5%   {                                                        opacity: var(--snow-op); }
+          30%  { transform: translateY(30vh)  translateX(var(--s1));  }
+          65%  { transform: translateY(65vh)  translateX(var(--s2));  }
+          95%  {                                                        opacity: var(--snow-op); }
+          100% { transform: translateY(108vh) translateX(var(--s3));  opacity: 0; }
+        }
+        .snowflake {
+          position: absolute;
+          top: 0;
+          border-radius: 50%;
+          background: rgba(220, 235, 255, 0.9);
+          pointer-events: none;
+          z-index: 2;
+          animation: snowFall var(--fall-dur) linear var(--fall-delay) infinite;
+          will-change: transform;
+        }
+
         /* ── Fade-in for content ── */
         .fade-in {
           opacity: 0;
@@ -209,6 +248,26 @@ export default function HowToPlay({ onBegin, onBack }) {
 
         {/* ── Scanline sweep ── */}
         <div className="scanline" />
+
+        {/* ── Snow particles ── */}
+        {SNOW.map((s, i) => (
+          <div
+            key={`snow-${i}`}
+            className="snowflake"
+            style={{
+              left:   `${s.left}%`,
+              width:  `${s.size}px`,
+              height: `${s.size}px`,
+              filter: s.blur ? 'blur(0.8px)' : 'none',
+              '--snow-op':    s.opacity,
+              '--fall-dur':  `${s.dur}s`,
+              '--fall-delay':`${s.delay}s`,
+              '--s1': `${s.s1}px`,
+              '--s2': `${s.s2}px`,
+              '--s3': `${s.s3}px`,
+            }}
+          />
+        ))}
 
         {/* ── Floating particles ── */}
         {PARTICLES.map((p, i) => (
