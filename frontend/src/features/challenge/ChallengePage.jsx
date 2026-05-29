@@ -336,7 +336,7 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
       {clip && (
         <video
           ref={videoRef}
-          src={`${API}/clips/${clip.filename}`}
+          src={clip.url ?? `${API}/clips/${clip.filename}`}
           style={{ ...styles.video, display: phase === 'playing' || phase === 'result' ? 'block' : 'none' }}
           onEnded={handleVideoEnd}
           onTimeUpdate={handleTimeUpdate}
@@ -376,9 +376,9 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
                    : resultData.verdict === 'early'   ? '#ffaa00'
                    : '#ff4444'
             }}>
-              {resultData.verdict === 'perfect' ? ' PERFECT'
-             : resultData.verdict === 'early'   ? ' TOO EARLY'
-             : ' TOO LATE'}
+              {resultData.verdict === 'perfect' ? '✓ PERFECT'
+             : resultData.verdict === 'early'   ? '✗ TOO EARLY'
+             : '✗ TOO LATE'}
             </p>
 
             <p style={styles.roastText}>"{roastText}"</p>
@@ -416,11 +416,11 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
             <div style={styles.btnRow}>
               {roundRef.current < JUMPSCARE_ROUND ? (
                 <button style={styles.btn} onClick={e => { e.stopPropagation(); loadClip() }}>
-                  Next Round 
+                  Next Round →
                 </button>
               ) : (
                 <button style={styles.btn} onClick={e => { e.stopPropagation(); finishGame() }}>
-                  View Results 
+                  View Results →
                 </button>
               )}
             </div>

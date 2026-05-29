@@ -14,8 +14,12 @@ CLIPS = [
     {"id": "6",  "filename": "fixed_6.mp4",  "peekTime": 0.283},
 ]
 
+# JUMPSCARE_CLIPS = [
+#     # {"id": "jump_1", "filename": "jump_new.mp4" },
+#     {"id": "jump_1", "filename": "jump_new_fixed.mp4", "peekTime": 19}
+#     # {"id": "jump_2", "filename": "fixed_jump_2.mp4", "peekTime": 0.5},
+# ]
+
 JUMPSCARE_CLIPS = [
-    # {"id": "jump_1", "filename": "jump_new.mp4" },
-    {"id": "jump_1", "filename": "jump_new_fixed.mp4", "peekTime": 19}
-    # {"id": "jump_2", "filename": "fixed_jump_2.mp4", "peekTime": 0.5},
+    {"id": "jump_1", "filename": "jump_new_fixed.mp4", "peekTime": 19, "url": "https://xsxvisvacsgikjwffirg.supabase.co/storage/v1/object/public/clips/jump_new_fixed.mp4"}
 ]
