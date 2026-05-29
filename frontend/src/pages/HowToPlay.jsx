@@ -11,6 +11,18 @@ const instructions = [
   'Fullscreen mode recommended for maximum humiliation',
 ]
 
+// Particle config: position (%), animation duration, delay, size
+const PARTICLES = [
+  { left: 18, bottom: 12, dur: 7,   delay: 0,   size: 2 },
+  { left: 32, bottom: 22, dur: 9,   delay: 1.2, size: 1.5 },
+  { left: 47, bottom: 8,  dur: 6.5, delay: 2.5, size: 2 },
+  { left: 61, bottom: 18, dur: 8,   delay: 0.7, size: 1.5 },
+  { left: 74, bottom: 28, dur: 10,  delay: 3.1, size: 2 },
+  { left: 85, bottom: 10, dur: 7.5, delay: 1.8, size: 1.5 },
+  { left: 25, bottom: 35, dur: 11,  delay: 4,   size: 1 },
+  { left: 55, bottom: 30, dur: 8.5, delay: 2,   size: 1 },
+]
+
 export default function HowToPlay({ onBegin, onBack }) {
   const [visible, setVisible] = useState(false)
   const [camStatus, setCamStatus] = useState('Requesting...')
@@ -48,6 +60,69 @@ export default function HowToPlay({ onBegin, onBack }) {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&display=swap');
         .cinzel { font-family: 'Cinzel', serif; }
+
+        /* ── Background: slow Ken Burns zoom + drift ── */
+        @keyframes kenBurns {
+          0%   { transform: scale(1)    translate(0%,    0%);   }
+          33%  { transform: scale(1.07) translate(-1%,   0.5%); }
+          66%  { transform: scale(1.05) translate(0.8%, -0.8%); }
+          100% { transform: scale(1)    translate(0%,    0%);   }
+        }
+        .bg-ken-burns {
+          animation: kenBurns 24s ease-in-out infinite;
+          transform-origin: center center;
+          will-change: transform;
+        }
+
+        /* ── Scanline: single thin bar sweeping top → bottom ── */
+        @keyframes scanline {
+          0%   { top: -6px;  opacity: 0; }
+          5%   {             opacity: 0.12; }
+          95%  {             opacity: 0.08; }
+          100% { top: 100%;  opacity: 0; }
+        }
+        .scanline {
+          position: absolute;
+          left: 0; right: 0;
+          height: 3px;
+          background: linear-gradient(
+            to bottom,
+            transparent,
+            rgba(255, 255, 255, 0.1),
+            transparent
+          );
+          animation: scanline 8s linear infinite;
+          pointer-events: none;
+          z-index: 3;
+        }
+
+        /* ── Vignette pulse ── */
+        @keyframes vignettePulse {
+          0%, 100% { opacity: 0.75; }
+          50%       { opacity: 0.82; }
+        }
+        .vignette {
+          background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.85) 100%);
+          animation: vignettePulse 6s ease-in-out infinite;
+        }
+
+        /* ── Floating particles ── */
+        @keyframes floatUp {
+          0%   { transform: translate(0, 0) scale(1);   opacity: 0;   }
+          8%   {                                         opacity: 0.7; }
+          88%  {                                         opacity: 0.4; }
+          100% { transform: translate(var(--dx), -130px) scale(0.3); opacity: 0; }
+        }
+        .particle {
+          position: absolute;
+          border-radius: 50%;
+          background: rgba(96, 165, 250, 0.85);
+          pointer-events: none;
+          z-index: 2;
+          animation: floatUp var(--dur) ease-out var(--delay) infinite;
+        }
+
+        /* ── Fade-in for content ── */
         .fade-in {
           opacity: 0;
           transform: translateY(10px);
@@ -58,9 +133,10 @@ export default function HowToPlay({ onBegin, onBack }) {
           transform: translateY(0);
         }
 
+        /* ── Buttons ── */
         .btn-primary {
           clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
-          background: #2563eb;
+          background: #dc2626;
           color: white;
           font-family: 'Cinzel', serif;
           font-weight: 700;
@@ -74,7 +150,7 @@ export default function HowToPlay({ onBegin, onBack }) {
           white-space: nowrap;
         }
         .btn-primary:hover:not(:disabled) {
-          background: #3b82f6;
+          background: #ef4444;
           transform: translateY(-1px);
         }
         .btn-primary:active:not(:disabled) {
@@ -85,11 +161,11 @@ export default function HowToPlay({ onBegin, onBack }) {
           cursor: not-allowed;
         }
         .btn-primary-wrap {
-          filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.55));
+          filter: drop-shadow(0 0 10px rgba(220, 38, 38, 0.6));
           transition: filter 0.2s;
         }
         .btn-primary-wrap:not(:has(button:disabled)):hover {
-          filter: drop-shadow(0 0 18px rgba(96, 165, 250, 0.85));
+          filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.9));
         }
 
         .btn-secondary {
@@ -117,12 +193,41 @@ export default function HowToPlay({ onBegin, onBack }) {
         }
       `}</style>
 
-      <div
-        className="cinzel relative h-screen w-screen overflow-hidden flex flex-col bg-cover bg-center"
-        style={{ backgroundImage: `url(${bgImage})` }}
-      >
-        <div className="absolute inset-0 bg-black/60" />
+      <div className="cinzel relative h-screen w-screen overflow-hidden flex flex-col">
 
+        {/* ── Animated background image ── */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-ken-burns"
+          style={{ backgroundImage: `url(${bgImage})` }}
+        />
+
+        {/* ── Dark base overlay ── */}
+        <div className="absolute inset-0 bg-black/55" />
+
+        {/* ── Vignette ── */}
+        <div className="absolute inset-0 vignette" />
+
+        {/* ── Scanline sweep ── */}
+        <div className="scanline" />
+
+        {/* ── Floating particles ── */}
+        {PARTICLES.map((p, i) => (
+          <div
+            key={i}
+            className="particle"
+            style={{
+              left:   `${p.left}%`,
+              bottom: `${p.bottom}%`,
+              width:  `${p.size}px`,
+              height: `${p.size}px`,
+              '--dur':   `${p.dur}s`,
+              '--delay': `${p.delay}s`,
+              '--dx':    `${(Math.random() - 0.5) * 40}px`,
+            }}
+          />
+        ))}
+
+        {/* ── Content ── */}
         <div className={`relative z-10 flex flex-col h-full px-16 py-12 fade-in${visible ? ' show' : ''}`}>
 
           <div className="flex-1 flex flex-col justify-center max-w-2xl">

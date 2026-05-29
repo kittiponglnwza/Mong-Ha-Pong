@@ -109,7 +109,7 @@ function App() {
         />
       )}
       {page === 'about' && (
-        <AboutMe onBack={() => setPage('home')} />
+        <AboutMe onBack={() => setPage('home')} onPlay={() => setPage('howtoplay')} />
       )}
     </main>
   )

@@ -1,53 +1,45 @@
 import React, { useState, useEffect } from 'react';
-// ใช้รูปภาพเดิมที่คุณมีอยู่จริงในเครื่องเพื่อไม่ให้เกิด Error
-import bgImage from '../assets/main.png';
+import bgImage from '../assets/logo.jpg';
 import MeImage from '../assets/me.png';
+import backImage from '../assets/back.jpg';
 
-// 4. Data สำหรับแสดงรายละเอียด Skill (Lore แบบดุดัน)
 const skillData = {
   info: {
-    title: "BIOGRAPHY",
-    desc: "ผมไม่ได้มองเว็บไซต์เป็นเพียงหน้าจอสำหรับการใช้งาน แต่ผมมองมันเป็นอีกโลกหนึ่งที่ผู้คนควร ‘รู้สึก’ ทุกครั้งที่ได้เข้ามาสัมผัส ทุก animation ทุกแสง และทุก movement ที่ผมออกแบบ ล้วนมีความหมายในแบบของมันเอง ผมหลงใหลในงาน UI/UX ที่ให้ความรู้สึก cinematic futuristic และมีเอกลักษณ์มากพอที่จะทำให้ผู้คนจดจำได้ตั้งแต่ครั้งแรก สำหรับผม design ไม่ใช่แค่ความสวยงาม แต่มันคืออารมณ์ ตัวตน และพลังที่ส่งผ่านไปถึงผู้ใช้งานอย่างเงียบงามโดยไม่จำเป็นต้องเอ่ยคำใด."
+    title: 'ELITE PROFILE',
+    desc: 'I don’t build pages. I design controlled cinematic systems—interfaces engineered for presence, precision, and identity. Every detail is tuned like a tactical command layer where motion, hierarchy, and atmosphere work as one unified experience.'
   },
-
   C: {
-    title: "REACT SYSTEM",
-    desc: "React สำหรับผมคือเครื่องมือสำคัญในการสร้างระบบที่มั่นคงและพร้อมเติบโต ผมชื่นชอบการวาง architecture ให้ทุกอย่างเป็นระเบียบ scalable และรองรับอนาคตตั้งแต่เริ่มต้น ไม่ว่า UI จะซับซ้อนเพียงใด ผมให้ความสำคัญกับความลื่นไหล responsive และประสบการณ์ที่ไร้รอยต่อ เพราะผมเชื่อว่างานที่ดีควรทั้งรวดเร็ว นิ่ง และสวยงามไปพร้อมกัน."
+    title: 'CREATIVE UI DIRECTION',
+    desc: 'Interfaces built with cinematic intent—strong hierarchy, bold contrast, and deliberate visual pacing. Every screen is designed to feel like a premium command console, not a generic UI.'
   },
-
   Q: {
-    title: "TAILWIND ENGINE",
-    desc: "Tailwind คือภาษาที่ผมใช้เปลี่ยนจินตนาการให้กลายเป็น interface ที่จับต้องได้ ผมชื่นชอบการจัดวาง spacing แสง สี blur และ layout เพื่อสร้างงานที่ดูเรียบหรูอย่างเป็นธรรมชาติ ทุก pixel ถูกออกแบบอย่างตั้งใจ เพื่อให้งานโดยรวมดูคมชัด ลื่นไหล และมีเอกลักษณ์เฉพาะตัวในแบบที่สะท้อนมาตรฐานระดับสากล."
+    title: 'FRONTEND ARCHITECTURE',
+    desc: 'Structured, scalable frontend systems built for long-term stability. Clean architecture that supports complex visuals without breaking performance or clarity.'
   },
-
   E: {
-    title: "CREATIVE VISION",
-    desc: "ผมเชื่อว่างานที่ดีไม่ได้เกิดจากความสวยงามเพียงอย่างเดียว แต่มันเกิดจากวิสัยทัศน์ที่สามารถเชื่อมโยงความรู้สึกของผู้คนเข้ากับเทคโนโลยีได้อย่างลงตัว ทุกองค์ประกอบที่ผมสร้างจึงถูกออกแบบให้มีทั้งอารมณ์ บรรยากาศ และรายละเอียดที่ช่วยยกระดับประสบการณ์ให้ดูทันสมัย น่าจดจำ และเต็มไปด้วยเอกลักษณ์ในแบบของตัวเอง."
+    title: 'CINEMATIC MOTION DESIGN',
+    desc: 'Motion used as narrative control—subtle transitions, glow, depth, and timing that create a sense of controlled immersion and engineered atmosphere.'
   },
-
   X: {
-    title: "CONTACT",
-    desc: "บางคนสร้างเว็บไซต์เพื่อให้ใช้งานได้ แต่สำหรับผม การสร้างเว็บไซต์คือการสร้างประสบการณ์ที่ผู้คนจะจดจำ หากคุณกำลังมองหาคนที่พร้อมเปลี่ยนไอเดียธรรมดาให้กลายเป็นผลงานที่มีทั้งความสวยงามและความรู้สึก ผมยินดีเสมอที่จะร่วมสร้างสิ่งนั้นไปด้วยกัน.\n\nDISCORD : topz.\nINSTAGRAM : topz.exe\nEMAIL : [topz.dev@gmail.com](mailto:topz.dev@gmail.com)"
+    title: 'CONTACT',
+    desc: 'Direct access channel for collaboration, opportunities, or system integration. Responses are handled with precision and intent.',
+    email: 'kitipongzaza566@gmail.com'
   }
 };
 
-
-export default function ValorantAgentSelect() {
-  const [lockedIn, setLockedIn] = useState(true);
+export default function ValorantAgentSelect({ onBack, onPlay }) {
+  const [lockedIn, setLockedIn] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [particles, setParticles] = useState([]);
-
-  // 3. State ควบคุม UI กล่องข้อความ
   const [activePanel, setActivePanel] = useState('info');
 
-  // เอฟเฟกต์อนุภาคเรืองแสง (Particles) ด้านหลัง
   useEffect(() => {
-    const generatedParticles = Array.from({ length: 25 }).map((_, i) => ({
+    const generatedParticles = Array.from({ length: 28 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
       top: `${Math.random() * 100}%`,
       size: `${Math.random() * 3 + 1}px`,
-      opacity: Math.random() * 0.6 + 0.2,
+      opacity: Math.random() * 0.55 + 0.15,
       animDuration: `${Math.random() * 12 + 12}s`,
       animDelay: `-${Math.random() * 10}s`,
       moveX: `${(Math.random() - 0.5) * 80}px`
@@ -62,15 +54,15 @@ export default function ValorantAgentSelect() {
   };
 
   const skills = [
-    { key: 'C', icon: '⚡' },
-    { key: 'Q', icon: '🧠' },
-    { key: 'E', icon: '🧱' },
-    { key: 'X', icon: '🚀' }
+    { key: 'G', label: 'Game Sense', value: 32 },
+    { key: 'A', label: 'Aim Control', value: 67 },
+    { key: 'L', label: 'Lucky Factor', value: 999999 },
+    { key: 'C', label: 'Clutch Instinct', value: 56 }
   ];
 
   return (
     <div
-      className="relative w-full h-screen bg-slate-950 font-sans overflow-hidden select-none"
+      className="relative w-full h-screen bg-[#04070d] font-sans overflow-hidden select-none"
       onMouseMove={handleMouseMove}
     >
       <style>{`
@@ -80,46 +72,71 @@ export default function ValorantAgentSelect() {
           90% { opacity: var(--max-opacity); }
           100% { transform: translateY(-500px) translateX(var(--move-x)); opacity: 0; }
         }
+
+        @keyframes pulseGreen {
+          0%, 100% { opacity: .35; box-shadow: 0 0 8px rgba(34,197,94,.35); }
+          50% { opacity: 1; box-shadow: 0 0 18px rgba(34,197,94,.9); }
+        }
+
         .scanline-overlay {
           position: absolute;
           inset: 0;
           pointer-events: none;
           background: repeating-linear-gradient(
-            0deg,
-            rgba(0, 217, 255, 0.03) 0px,
-            rgba(0, 217, 255, 0.03) 1px,
+            180deg,
+            rgba(0,217,255,.045) 0px,
+            rgba(0,217,255,.045) 1px,
             transparent 1px,
-            transparent 2px
+            transparent 3px
           );
-          z-index: 40;
+          mix-blend-mode: screen;
         }
+
         .tactical-box {
-          background: linear-gradient(135deg, rgba(10, 15, 28, 0.75), rgba(20, 25, 45, 0.75));
-          border: 1px solid rgba(0, 217, 255, 0.25);
-          backdrop-filter: blur(10px);
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(0, 217, 255, 0.05);
+          background: linear-gradient(135deg, rgba(4,10,18,.72), rgba(10,16,28,.55));
+          border: 1px solid rgba(0,217,255,.22);
+          backdrop-filter: blur(18px);
+          box-shadow: 0 0 30px rgba(0,217,255,.08), inset 0 0 28px rgba(0,0,0,.35);
+        }
+
+        .glow-cyan {
+          box-shadow: 0 0 24px rgba(0,217,255,.28), 0 0 60px rgba(0,217,255,.12);
+        }
+
+        .glow-red {
+          box-shadow: 0 0 24px rgba(255,70,85,.22), 0 0 60px rgba(255,70,85,.12);
+        }
+
+        .txt-stroke {
+          text-shadow: 0 0 12px rgba(0,217,255,.35), 0 0 28px rgba(255,70,85,.12);
         }
       `}</style>
 
-      {/* 1. BACKGROUND WITH PARALLAX EFFECT */}
+      {/* Back Button Top-Left */}
+      <button
+        onClick={() => onBack?.()}
+        className="absolute top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 text-xs font-bold tracking-[0.3em] uppercase text-slate-400 hover:text-cyan-300 transition-all duration-200 border border-white/10 hover:border-cyan-400/40 bg-black/40 hover:bg-cyan-400/5 backdrop-blur-sm skew-x-[-8deg]"
+      >
+        <span className="skew-x-[8deg]">← BACK</span>
+      </button>
+
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div
           className="w-full h-full bg-cover bg-center transition-transform duration-100 ease-out"
           style={{
-            backgroundImage: `url(${bgImage})`,
+            backgroundImage: `url(${backImage})`,
             transform: `scale(1.08) translate(${mousePos.x * 0.15}px, ${mousePos.y * 0.15}px)`
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-black/60" />
-        <div className="absolute inset-0 bg-slate-950/20" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,217,255,0.12),transparent_45%),linear-gradient(90deg,rgba(0,0,0,.92),rgba(0,0,0,.5),rgba(0,0,0,.88))]" />
+        <div className="absolute inset-0 bg-black/30" />
       </div>
 
-      {/* 2. BACKGROUND PARTICLES */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
-        {particles.map(p => (
+        {particles.map((p) => (
           <div
             key={p.id}
-            className="absolute rounded-full bg-cyan-400 shadow-[0_0_8px_#0dd9ff]"
+            className="absolute rounded-full bg-cyan-400 shadow-[0_0_8px_#00d9ff]"
             style={{
               left: p.left,
               top: p.top,
@@ -128,210 +145,196 @@ export default function ValorantAgentSelect() {
               '--max-opacity': p.opacity,
               '--move-x': p.moveX,
               animation: `float-particle ${p.animDuration} linear infinite`,
-              animationDelay: p.animDelay,
+              animationDelay: p.animDelay
             }}
           />
         ))}
       </div>
 
-      {/* 3. CHARACTER MODEL (CENTER) - ปรับขนาดและตำแหน่งตาม Request 1 */}
-      <div className="absolute inset-0 z-20 flex justify-center items-end pb-[4%] pointer-events-none">
+      <div className="absolute inset-0 z-20 flex justify-center items-end pb-4 pointer-events-none">
         <img
           src={MeImage}
           alt="Selected Agent"
-          className="h-[95%] lg:h-[110%] object-contain transition-transform duration-100 ease-out"
+          className="h-[95vh] lg:h-[110vh] object-contain transition-transform duration-100 ease-out drop-shadow-[0_0_35px_rgba(0,217,255,0.12)]"
           style={{
             transform: `translate(${mousePos.x * 0.4}px, ${mousePos.y * 0.3}px)`
           }}
         />
       </div>
 
-      {/* SCANLINE EFFECT */}
-      <div className="scanline-overlay"></div>
+      <div className="scanline-overlay z-40" />
 
-      {/* 4. MAIN INTERFACE LAYER */}
-      <div className="absolute inset-0 z-30 p-10 flex justify-between items-stretch pointer-events-none">
-
-        {/* ==================== LEFT PANEL: AGENT INFO BOXES ==================== */}
+      <div className="absolute inset-0 z-30 p-6 lg:p-10 flex justify-between items-stretch pointer-events-none">
         <div
-          className="w-[340px] flex flex-col justify-start pointer-events-auto transition-transform duration-100 ease-out"
-          style={{ transform: `translate(${mousePos.x * -0.2}px, ${mousePos.y * -0.2}px)` }}
+          className="w-[360px] flex flex-col justify-start pointer-events-auto transition-transform duration-100 ease-out"
+          style={{
+            transform: `translate(${mousePos.x * -0.2}px, ${mousePos.y * -0.2}px)`
+          }}
         >
-          {/* ซ้ายบน: หัวข้อ AGENT */}
-          <div className="mb-6 flex items-center gap-3 border-b border-white/10 pb-4">
-            <div className="w-7 h-7 bg-[#ff4655] p-1 flex flex-col justify-center items-center gap-[2px] skew-x-[-10deg]">
-              <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-b-[7px] border-l-transparent border-r-transparent border-b-white"></div>
-              <div className="w-3 h-1 bg-white"></div>
+          <div className="mb-6 flex items-center gap-3 border-b border-cyan-400/20 pb-4">
+            <div className="w-7 h-7 bg-[#ff4655] p-1 flex flex-col justify-center items-center gap-[2px] skew-x-[-10deg] glow-red">
+              <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-b-[7px] border-l-transparent border-r-transparent border-b-white" />
+              <div className="w-3 h-1 bg-white" />
             </div>
             <div>
-              <h2 className="text-4xl font-black italic uppercase text-white drop-shadow-md leading-none tracking-wider">
+              <h2 className="text-4xl font-black italic uppercase text-white tracking-[0.18em] txt-stroke">
                 AGENT
               </h2>
-              <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest mt-1">
-                DOSSIER // FILE SYSTEM ACTIVE
+              <p className="text-[10px] font-bold text-cyan-300 uppercase tracking-[0.55em] mt-1">
+                TOPZ
               </p>
             </div>
           </div>
 
-          {/* กล่องข้อความ 1: Overview */}
-          <div className="tactical-box p-4 rounded-sm mb-4 border-l-4 border-l-cyan-400">
-            <div className="text-[11px] tracking-[2px] text-cyan-400 font-bold uppercase mb-2 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 bg-cyan-400 shadow-[0_0_6px_#0dd9ff]"></span>
-              BIOGRAPHY
+          <div className="tactical-box p-5 rounded-sm mb-4 border-l-4 border-l-cyan-400/80">
+            <div className="text-[11px] tracking-[0.22em] text-cyan-300 font-bold uppercase mb-3 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 bg-cyan-400 shadow-[0_0_10px_#00d9ff] animate-pulse" />
+              ELITE PROFILE
             </div>
-            <p className="text-xs text-gray-300 leading-relaxed">
-              สตรีมเมอร์และนักพัฒนาซอฟต์แวร์ผู้หลงใหลในการออกแบบ UI/UX สไตล์ล้ำยุค มีความเชี่ยวชาญในการจัดโครงสร้าง Frontend ให้มีประสิทธิภาพและลื่นไหลเหมือนเกมระดับ AAA
+            <p className="text-sm text-slate-200 leading-7">
+              I don't play Valorant like a player. I move like a classified weapon system operating in real time. Every flick is calculated. Every peek feels cinematic. Every clutch looks impossible until I make it happen. The enemy team calls it aim. What they're actually seeing is controlled destruction at 240Hz.
             </p>
           </div>
 
-          {/* กล่องข้อความ 2: Core Capabilities */}
-
-          <div>
-            <div className="flex justify-between mb-1">
-              <span className="text-white/70">Creative UI Direction</span>
-              <span className="text-cyan-400 font-bold">99%</span>
+          <div className="tactical-box p-5 rounded-sm mb-4 border-l-4 border-l-red-500/80">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] tracking-[0.22em] text-red-300 font-bold uppercase">
+                COMBAT CAPABILITIES
+              </span>
+              <span className="text-[10px] text-cyan-300 font-bold tracking-[0.3em]">
+                ELITE TIER
+              </span>
             </div>
-            <div className="w-full h-1 bg-slate-950 border border-white/10">
-              <div className="h-full bg-cyan-400" style={{ width: '99%' }}></div>
+
+            <div className="space-y-3">
+              {skills.map((skill) => (
+                <div key={skill.key}>
+                  <div className="flex justify-between mb-1.5">
+                    <span className="text-white/80 text-xs font-semibold tracking-wide">
+                      {skill.label}
+                    </span>
+                    <span className="text-cyan-300 font-bold text-xs">
+                      {skill.value}
+                    </span>
+                  </div>
+                  <div className="w-full h-2 bg-black/80 border border-white/10 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-cyan-300 to-red-500 shadow-[0_0_14px_rgba(0,217,255,0.55)]"
+                      style={{ width: `${Math.min(skill.value, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div>
-            <div className="flex justify-between mb-1">
-              <span className="text-white/70">Frontend Architecture</span>
-              <span className="text-cyan-400 font-bold">96%</span>
-            </div>
-            <div className="w-full h-1 bg-slate-950 border border-white/10">
-              <div className="h-full bg-cyan-400" style={{ width: '96%' }}></div>
-            </div>
-          </div>
-
-          <div>
-            <div className="flex justify-between mb-1">
-              <span className="text-white/70">Cinematic Motion Design</span>
-              <span className="text-cyan-400 font-bold">98%</span>
-            </div>
-            <div className="w-full h-1 bg-slate-950 border border-white/10">
-              <div className="h-full bg-cyan-400" style={{ width: '98%' }}></div>
-            </div>
-          </div>
-
-          {/* กล่องข้อความ 3: System Status */}
-          <div className="tactical-box p-4 rounded-sm border-l-4 border-l-[#ff4655]">
-            <div className="text-[11px] tracking-[2px] text-red-400 font-bold uppercase mb-1.5">
+          <div className="tactical-box p-4 rounded-sm border-l-4 border-l-green-500/80">
+            <div className="text-[11px] tracking-[0.22em] text-green-300 font-bold uppercase mb-2">
               SYSTEM STATUS
             </div>
-            <p className="text-xs text-green-400 font-semibold tracking-wide flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-              DEPLOYMENT READY // NO ERRORS FOUND
-            </p>
+            <div className="flex items-center gap-2 text-green-300 text-xs font-semibold tracking-[0.22em]">
+              <span
+                className="w-2.5 h-2.5 rounded-full bg-green-400"
+                style={{ animation: 'pulseGreen 1.2s ease-in-out infinite' }}
+              />
+              DARK SYSTEMS  ERROR 404
+            </div>
+            <div className="text-slate-300 text-xs mt-2">
+              “Don’t let me wake up—I’ll kill everything clean.”
+            </div>
           </div>
         </div>
 
-        {/* ==================== CENTER BOTTOM: TIMER & LOCK IN ==================== */}
-        {/* ปรับขนาดตาม Request 2 */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center w-[240px] pointer-events-auto">
-          {/* Timer */}
-          <div className="text-[64px] font-black text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] leading-none mb-3 italic">
-            53
+        <div className="w-[420px] flex flex-col justify-start pointer-events-auto transition-transform duration-100 ease-out pt-16 lg:pt-24"
+          style={{
+            transform: `translate(${mousePos.x * -0.15}px, ${mousePos.y * -0.15}px)`
+          }}
+        >
+          <div className="mb-6 pl-4 text-right lg:text-left">
+            <p className="text-xs font-bold text-cyan-300 tracking-[0.35em] uppercase drop-shadow-md mb-1">
+              FRONTEND ARCHITECT
+            </p>
+            <h1 className="text-[78px] lg:text-[92px] font-black italic text-[#ece8e1] leading-[0.85] tracking-[-0.04em] txt-stroke">
+              TOPZ
+            </h1>
           </div>
 
-          {/* Lock In Button */}
+          <div className="flex gap-3 mb-6 justify-end lg:justify-start">
+            {Object.keys(skillData).map((key) => (
+              <button
+                key={key}
+                onClick={() => setActivePanel(key)}
+                className={`w-11 h-11 rounded-full flex items-center justify-center text-[10px] font-bold tracking-widest transition-all duration-300 ease-out hover:scale-110 ${
+                  activePanel === key
+                    ? 'bg-cyan-400/20 border-2 border-cyan-400 shadow-[0_0_18px_rgba(0,217,255,0.5)] text-white'
+                    : 'bg-black/40 border border-white/20 text-white hover:bg-white/10'
+                }`}
+              >
+                {key === 'info' ? 'INFO' : key}
+              </button>
+            ))}
+          </div>
+
+          <div className="text-left w-full text-sm text-gray-200 leading-relaxed bg-black/35 backdrop-blur-md p-5 rounded-sm border-l-2 border-cyan-500/30 shadow-2xl glow-cyan transition-all duration-300">
+            <p className="font-bold text-cyan-300 mb-3 uppercase tracking-[0.2em] text-[11px]">
+              {skillData[activePanel].title}
+            </p>
+            <p className="text-slate-300 text-sm leading-7">
+              {skillData[activePanel].desc}
+            </p>
+
+            {skillData[activePanel].email && (
+              <a
+                href={`mailto:${skillData[activePanel].email}`}
+                className="mt-4 inline-block text-cyan-300 font-semibold text-sm hover:underline"
+              >
+                {skillData[activePanel].email}
+              </a>
+            )}
+          </div>
+        </div>
+
+        <div className="w-[240px] lg:w-[260px] absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-auto">
+          <div className="text-6xl lg:text-7xl font-black text-white drop-shadow-[0_0_18px_rgba(0,0,0,0.7)] leading-none mb-3 italic">
+            56
+          </div>
+
           <button
-            onClick={() => setLockedIn(!lockedIn)}
-            className={`w-full py-2.5 text-xl font-black italic tracking-widest uppercase transition-all duration-200 border-b-2 border-black/30 skew-x-[-10deg]
-              ${lockedIn
-                ? 'bg-[#cccbd6] text-[#555462] cursor-default'
-                : 'bg-[#ff4655] hover:bg-[#ff5865] text-white shadow-[0_0_20px_rgba(255,70,85,0.4)] active:scale-[0.98]'
-              }
-            `}
+            onClick={() => {
+              setLockedIn(true);
+              onPlay?.();
+            }}
+            className={`w-full py-3 text-lg font-black italic tracking-[0.35em] uppercase transition-all duration-300 border-b-2 border-black/30 skew-x-[-10deg] ${
+              lockedIn
+                ? 'bg-slate-200 text-slate-700 cursor-default'
+                : 'bg-[#ff4655] hover:bg-[#ff5f6f] text-white shadow-[0_0_24px_rgba(255,70,85,0.45)]'  
+            }`}
           >
             <div className="skew-x-[10deg]">
               {lockedIn ? 'LOCKED IN' : 'LOCK IN'}
             </div>
           </button>
 
-          {/* Player Card Mini */}
-          <div className="mt-4 flex flex-col items-center bg-black/70 backdrop-blur-md p-2.5 w-[160px] border border-white/10 shadow-2xl rounded-sm">
+          
+
+          <div className="mt-4 flex flex-col items-center bg-black/70 backdrop-blur-md p-2.5 w-40 border border-white/10 shadow-2xl rounded-sm glow-cyan">
             <div className="w-full aspect-square bg-[#0c1826] relative mb-1.5 overflow-hidden border border-cyan-500/20">
-              <img src={MeImage} alt="Player" className="w-full h-full object-cover object-top" />
-              <div className="absolute bottom-0 inset-x-0 bg-black/70 text-center py-[2px]">
-                <span className="text-[10px] text-white font-semibold tracking-wider">cork</span>
+              <img
+                src={bgImage}
+                alt="Player"
+                className="w-full h-full object-cover object-top"
+              />
+              <div className="absolute bottom-0 inset-x-0 bg-black/70 text-center py-0.5">
+                <span className="text-[10px] text-white font-semibold tracking-wider">
+                  TOPZ
+                </span>
               </div>
             </div>
-            <p className="text-[10px] text-gray-400 font-medium tracking-widest uppercase">
-              {lockedIn ? 'Locked' : 'Picking...'}
+            <p className="text-[10px] text-slate-300 font-medium tracking-[0.3em] uppercase">
+              {lockedIn ? 'Picking...' : 'Locked'}
             </p>
           </div>
         </div>
-
-        {/* ==================== RIGHT PANEL: AGENT DETAILS ==================== */}
-        <div
-          className="w-[420px] flex flex-col justify-start pointer-events-auto transition-transform duration-100 ease-out"
-          style={{ transform: `translate(${mousePos.x * -0.15}px, ${mousePos.y * -0.15}px)` }}
-        >
-          {/* Role & Name */}
-          <div className="mb-6 pl-4 text-right lg:text-left">
-            <p className="text-xs font-bold text-cyan-300 tracking-[0.25em] uppercase drop-shadow-md mb-1">
-              FRONTEND ARCHITECT
-            </p>
-            <h1 className="text-[90px] font-black italic text-[#ece8e1] leading-[0.85] tracking-[-0.04em] drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)]">
-              TOPZ
-            </h1>
-          </div>
-
-          {/* Skills Tray */}
-          <div className="flex gap-3 mb-6 justify-end lg:justify-start">
-            {/* 5. & 8. ปุ่ม INFO */}
-            <div
-              onClick={() => {
-                setActivePanel('info');
-                new Audio('/click.mp3').play().catch(e => console.log('Audio disabled')); // เพิ่มกันเหนียว
-              }}
-              className={`w-11 h-11 rounded-full flex items-center justify-center mr-2 shadow-inner cursor-pointer transition-all duration-300 ease-out hover:scale-110
-                ${activePanel === 'info'
-                  ? 'bg-cyan-400/20 border-2 border-cyan-400 shadow-[0_0_15px_rgba(0,217,255,0.5)]'
-                  : 'bg-black/40 border border-white/60'
-                }
-              `}
-            >
-              <span className="text-white font-bold text-[10px] tracking-tighter">INFO</span>
-            </div>
-
-            {/* 6. & 8. ปุ่ม Skills */}
-            {skills.map((skill, idx) => (
-              <div
-                key={idx}
-                className="flex flex-col items-center gap-1 group cursor-pointer"
-                onClick={() => {
-                  setActivePanel(skill.key);
-                  new Audio('/click.mp3').play().catch(e => console.log('Audio disabled')); // เพิ่มกันเหนียว
-                }}
-              >
-                <div className={`w-11 h-11 flex items-center justify-center text-lg text-white transition-all duration-300 ease-out hover:scale-110
-                  ${activePanel === skill.key
-                    ? 'bg-cyan-400/20 border-2 border-cyan-400 shadow-[0_0_15px_rgba(0,217,255,0.5)]'
-                    : 'bg-black/40 border border-white/20 group-hover:bg-white/20 group-hover:border-white/50'
-                  }
-                `}>
-                  {skill.icon}
-                </div>
-                <span className="text-[9px] font-bold text-white/50 tracking-widest">{skill.key}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* 7. Description Block แบบ Dynamic */}
-          <div className="text-left w-full text-[13px] text-gray-200 leading-relaxed bg-black/30 backdrop-blur-md p-5 rounded-sm border-l-2 border-cyan-500/30 shadow-2xl transition-all duration-300">
-            <p className="font-bold text-cyan-300 mb-3 uppercase tracking-wider text-[11px]">
-              {skillData[activePanel].title}
-            </p>
-            <p className="drop-shadow-md text-gray-300 text-sm leading-relaxed">
-              {skillData[activePanel].desc}
-            </p>
-          </div>
-        </div>
-
       </div>
     </div>
   );
