@@ -3,60 +3,226 @@ import { getAnimalProfile } from '../utils/animalProfile'
 import end1Bg from '../assets/end_1.jpg'
 import flashImg from '../assets/flash.jpg'
 import html2canvas from 'html2canvas'
-
+ 
 /* ─────────────────────────────────────────────────────────────
-   Phase 1 – minimal: photo bg + float-up text
+   Phase 1 – UPGRADED: ember particles + scanlines + heraldic ornament
 ───────────────────────────────────────────────────────────────*/
+function EmberParticles() {
+  return (
+    <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none', zIndex:2, overflow:'hidden' }} xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        {[...Array(18)].map((_, i) => (
+          <circle key={i} id={`e${i}`} r={Math.random()*2+0.8} fill={`rgba(251,${140+Math.floor(Math.random()*80)},60,${0.5+Math.random()*0.5})`} />
+        ))}
+      </defs>
+      <style>{`
+        ${[...Array(18)].map((_, i) => {
+          const x = 10 + Math.random() * 80
+          const dur = 3.5 + Math.random() * 4
+          const delay = Math.random() * 5
+          const drift = (Math.random() - 0.5) * 120
+          return `
+            @keyframes ember${i} {
+              0%   { transform: translate(${x}vw, 105vh) scale(1); opacity: 0; }
+              10%  { opacity: 1; }
+              80%  { opacity: ${0.3 + Math.random()*0.4}; }
+              100% { transform: translate(calc(${x}vw + ${drift}px), -5vh) scale(0.2); opacity: 0; }
+            }
+            .ember${i} { animation: ember${i} ${dur}s ease-in ${delay}s infinite; }
+          `
+        }).join('')}
+      `}</style>
+      {[...Array(18)].map((_, i) => {
+        const x = 10 + Math.random() * 80
+        const size = Math.random() * 3 + 1
+        return (
+          <ellipse
+            key={i}
+            className={`ember${i}`}
+            cx={`${x}%`} cy="105%"
+            rx={size} ry={size * 1.4}
+            fill={`rgba(251,${140+Math.floor(Math.random()*80)},60,0.8)`}
+          />
+        )
+      })}
+    </svg>
+  )
+}
+ 
 function PhaseAnnounce({ creature, imageUrl }) {
   return (
     <section className="relative min-h-dvh overflow-hidden flex flex-col items-center justify-center select-none">
-      <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap' />
+      <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Cinzel+Decorative:wght@700&display=swap' />
       <style>{`
         @keyframes float-up {
-          0%   { opacity: 0; transform: translateY(28px); }
+          0%   { opacity: 0; transform: translateY(32px); }
           100% { opacity: 1; transform: translateY(0); }
         }
-        .float-up-1 { animation: float-up 0.7s cubic-bezier(0.22,1,0.36,1) 0.1s both; }
-        .float-up-2 { animation: float-up 0.7s cubic-bezier(0.22,1,0.36,1) 0.3s both; }
-        .float-up-3 { animation: float-up 0.7s cubic-bezier(0.22,1,0.36,1) 0.5s both; }
+        @keyframes title-blaze {
+          0%,100% { text-shadow: 0 0 30px rgba(251,146,60,0.9), 0 0 80px rgba(251,146,60,0.5), 0 0 120px rgba(251,146,60,0.2), 0 2px 4px rgba(0,0,0,0.8); }
+          50%      { text-shadow: 0 0 50px rgba(251,146,60,1),   0 0 120px rgba(251,146,60,0.7), 0 0 200px rgba(251,100,30,0.3), 0 2px 4px rgba(0,0,0,0.8); }
+        }
+        @keyframes scanline {
+          0%   { transform: translateY(-100%); }
+          100% { transform: translateY(100vh); }
+        }
+        @keyframes ornament-in {
+          0%   { opacity: 0; transform: scaleX(0); }
+          100% { opacity: 1; transform: scaleX(1); }
+        }
+        @keyframes creature-glow {
+          0%,100% { color: rgba(251,191,36,0.55); text-shadow: 0 0 12px rgba(251,146,60,0.4); }
+          50%     { color: rgba(251,191,36,0.85); text-shadow: 0 0 24px rgba(251,146,60,0.8), 0 0 48px rgba(251,100,30,0.4); }
+        }
+        .float-up-1 { animation: float-up 0.8s cubic-bezier(0.22,1,0.36,1) 0.1s both; }
+        .float-up-2 { animation: float-up 0.8s cubic-bezier(0.22,1,0.36,1) 0.35s both; }
+        .float-up-3 { animation: float-up 0.8s cubic-bezier(0.22,1,0.36,1) 0.7s both; }
+        .float-up-4 { animation: float-up 0.8s cubic-bezier(0.22,1,0.36,1) 0.55s both; }
+        .title-blaze { animation: title-blaze 2.8s ease-in-out 1.2s infinite; }
+        .ornament-line { animation: ornament-in 0.9s cubic-bezier(0.22,1,0.36,1) 0.6s both; transform-origin: center; }
+        .creature-pulse { animation: creature-glow 3s ease-in-out 1.5s infinite; }
       `}</style>
+ 
+      {/* Background image */}
       <img src={end1Bg} alt="" className="absolute inset-0 w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-black/55" />
-      <div className="relative z-10 text-center px-6">
-        <p className="float-up-1 mb-3" style={{ fontFamily: "'Cinzel', serif", fontSize: "0.75rem", letterSpacing: "0.45em", color: "rgba(251,191,36,0.7)", textTransform: "uppercase" }}>นี่คือ</p>
-        <h1 className="float-up-2" style={{ fontFamily: "'Cinzel', serif", fontSize: "clamp(3rem,10vw,5rem)", fontWeight: 900, lineHeight: 1, letterSpacing: "0.04em", color: "#fff", textShadow: "0 0 30px rgba(251,146,60,0.9), 0 0 80px rgba(251,146,60,0.5), 0 2px 4px rgba(0,0,0,0.8)", marginBottom: "0.5rem" }}>ราชา b main</h1>
+ 
+      {/* Dark vignette overlay */}
+      <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 80% at 50% 40%, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.75) 100%)' }} />
+ 
+      {/* Scanline sweep */}
+      <div style={{
+        position:'absolute', inset:0, zIndex:3, pointerEvents:'none', overflow:'hidden',
+      }}>
+        <div style={{
+          position:'absolute', left:0, right:0, height:'2px',
+          background:'linear-gradient(180deg, transparent 0%, rgba(251,146,60,0.15) 50%, transparent 100%)',
+          animation:'scanline 6s linear 0.5s infinite',
+        }} />
+      </div>
+ 
+      {/* Horizontal noise lines (static) */}
+      <div style={{
+        position:'absolute', inset:0, zIndex:2, pointerEvents:'none',
+        backgroundImage:'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 4px)',
+      }} />
+ 
+      {/* Ember particles */}
+      <EmberParticles />
+ 
+      {/* Content */}
+      <div className="relative z-10 text-center px-6" style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'0' }}>
+ 
+        {/* Top label */}
+        <p className="float-up-1" style={{
+          fontFamily: "'Cinzel', serif", fontSize: "0.65rem", letterSpacing: "0.55em",
+          color: "rgba(251,191,36,0.65)", textTransform: "uppercase", marginBottom: '1.2rem',
+        }}>นี่คือ</p>
+ 
+        {/* Heraldic ornament top */}
+        <div className="ornament-line float-up-1" style={{
+          display:'flex', alignItems:'center', gap:'0.6rem', marginBottom:'1rem',
+          opacity: 0, // handled by float-up-1
+        }}>
+          <div style={{ height:'1px', width:60, background:'linear-gradient(90deg, transparent, rgba(251,146,60,0.7))' }} />
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ flexShrink:0 }}>
+            <path d="M9 1 L10.5 7 L17 9 L10.5 11 L9 17 L7.5 11 L1 9 L7.5 7 Z" fill="rgba(251,191,36,0.7)" />
+          </svg>
+          <div style={{ height:'1px', width:60, background:'linear-gradient(90deg, rgba(251,146,60,0.7), transparent)' }} />
+        </div>
+ 
+        {/* Main title */}
+        <h1 className="float-up-2 title-blaze" style={{
+          fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
+          fontSize: "clamp(2.2rem,8vw,4.5rem)",
+          fontWeight: 700,
+          lineHeight: 1.05,
+          letterSpacing: "0.05em",
+          color: "#fff",
+          marginBottom: "0",
+          textShadow: "0 0 30px rgba(251,146,60,0.9), 0 0 80px rgba(251,146,60,0.5), 0 2px 4px rgba(0,0,0,0.8)",
+        }}>King of B Main</h1>
+ 
+        {/* Heraldic ornament bottom */}
+        <div className="float-up-4" style={{
+          display:'flex', alignItems:'center', gap:'0.5rem', marginTop:'0.9rem',
+        }}>
+          <div style={{ height:'1px', width:40, background:'linear-gradient(90deg, transparent, rgba(251,191,36,0.4))' }} />
+          <div style={{ width:4, height:4, borderRadius:'50%', background:'rgba(251,191,36,0.6)' }} />
+          <div style={{ height:'1px', width:40, background:'linear-gradient(90deg, rgba(251,191,36,0.4), transparent)' }} />
+        </div>
+ 
+        {/* Creature name */}
         {creature && (
-          <p className="float-up-3" style={{ fontFamily: "'Cinzel', serif", fontSize: "1rem", letterSpacing: "0.3em", color: "rgba(251,191,36,0.55)", marginTop: "1rem", textShadow: "0 0 12px rgba(251,146,60,0.6)" }}>{creature}</p>
+          <p className="float-up-3 creature-pulse" style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: "clamp(0.85rem, 2.2vw, 1.1rem)",
+            letterSpacing: "0.38em",
+            color: "rgba(251,191,36,0.55)",
+            marginTop: "1.2rem",
+            textShadow: "0 0 12px rgba(251,146,60,0.6)",
+            textTransform: 'uppercase',
+          }}>{creature}</p>
         )}
       </div>
     </section>
   )
 }
-
+ 
 /* ─────────────────────────────────────────────────────────────
-   Phase 2 – cinematic face reveal: slow burn + spotlight
+   Phase 2 – UPGRADED: film grain + breathing spotlight + classified frame + glitch
 ───────────────────────────────────────────────────────────────*/
 const boomAudio = new Audio('/sounds/faaah.mp3')
 boomAudio.volume = 1.0
 boomAudio.load()
-
+ 
 function playBoom() {
   boomAudio.currentTime = 0
   boomAudio.play().catch(() => {})
 }
-
+ 
 const flashAudio = new Audio('/sounds/flash.mp3')
 flashAudio.volume = 1.0
 flashAudio.load()
-
+ 
 function playFlashSound() {
   flashAudio.currentTime = 0
   flashAudio.play().catch(() => {})
 }
-
+ 
+function FilmGrain() {
+  const canvasRef = useRef(null)
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    let frame
+    function draw() {
+      const w = canvas.width = canvas.offsetWidth
+      const h = canvas.height = canvas.offsetHeight
+      const imageData = ctx.createImageData(w, h)
+      const data = imageData.data
+      for (let i = 0; i < data.length; i += 4) {
+        const v = Math.random() * 30
+        data[i] = data[i+1] = data[i+2] = v
+        data[i+3] = Math.random() * 22
+      }
+      ctx.putImageData(imageData, 0, 0)
+      frame = requestAnimationFrame(draw)
+    }
+    draw()
+    return () => cancelAnimationFrame(frame)
+  }, [])
+  return (
+    <canvas ref={canvasRef} style={{
+      position:'absolute', inset:0, width:'100%', height:'100%',
+      pointerEvents:'none', zIndex:20, mixBlendMode:'overlay',
+    }} />
+  )
+}
+ 
 function PhaseFace({ imageUrl }) {
   const [step, setStep] = useState(0)
-
+ 
   useEffect(() => {
     const t0 = setTimeout(() => { setStep(1); playFlashSound() }, 300)
     const t1 = setTimeout(() => setStep(2), 350)
@@ -64,190 +230,274 @@ function PhaseFace({ imageUrl }) {
     const t3 = setTimeout(() => setStep(4), 1650)
     return () => { [t0,t1,t2,t3].forEach(clearTimeout) }
   }, [])
-
+ 
   return (
     <section style={{
       minHeight: '100dvh', background: '#000', overflow: 'hidden',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       position: 'relative',
     }}>
+      <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap' />
       <style>{`
         @keyframes flash-in  { from{opacity:0} to{opacity:1} }
         @keyframes flash-out { from{opacity:1} to{opacity:0} }
-        @keyframes photo-rise {
-          0%   { opacity:0; transform:scale(1.05); filter:brightness(2.5); }
-          30%  { filter:brightness(1.15); }
-          100% { opacity:1; transform:scale(1);    filter:brightness(1); }
+        @keyframes spotlight-breathe {
+          0%,100% { opacity:1; }
+          50%     { opacity:0.82; }
         }
         @keyframes vignette-in { from{opacity:0} to{opacity:1} }
-        @keyframes label-up { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes line-grow { from{transform:scaleX(0)} to{transform:scaleX(1)} }
-        .flash-in    { animation: flash-in  0.05s ease both; }
-        .flash-out   { animation: flash-out 0.75s cubic-bezier(0.4,0,1,1) both; }
-        .photo-rise  { animation: photo-rise 0.9s cubic-bezier(0.16,1,0.3,1) both; }
-        .label-tag   { animation: label-up 0.6s cubic-bezier(0.22,1,0.36,1) both; }
-        .label-title { animation: label-up 0.6s cubic-bezier(0.22,1,0.36,1) 0.1s both; }
-        .line-grow   { animation: line-grow 0.5s cubic-bezier(0.22,1,0.36,1) 0.06s both; transform-origin:left; }
+ 
+        /* Polaroid drop in: falls from above, slight wobble */
+        @keyframes polaroid-drop {
+          0%   { opacity:0; transform:rotate(-4deg) translateY(-60px) scale(0.9); }
+          55%  { opacity:1; transform:rotate(2.5deg) translateY(6px) scale(1.01); }
+          75%  { transform:rotate(-1.2deg) translateY(-3px) scale(1); }
+          90%  { transform:rotate(1deg) translateY(1px); }
+          100% { opacity:1; transform:rotate(-1.8deg) translateY(0) scale(1); }
+        }
+ 
+        /* Photo develops: starts washed-out sepia, slowly gets color */
+        @keyframes photo-develop {
+          0%   { filter:brightness(2.2) saturate(0) sepia(0.8); }
+          40%  { filter:brightness(1.4) saturate(0.2) sepia(0.4); }
+          100% { filter:brightness(1) saturate(1) sepia(0); }
+        }
+ 
+        /* Caption fades in after polaroid lands */
+        @keyframes caption-in {
+          from { opacity:0; transform:translateY(4px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+ 
+        /* Tape strip slides */
+        @keyframes tape-in {
+          from { opacity:0; transform:scaleX(0) rotate(-2deg); }
+          to   { opacity:1; transform:scaleX(1) rotate(-2deg); }
+        }
+ 
+        .polaroid-drop   { animation: polaroid-drop 0.85s cubic-bezier(0.34,1.2,0.64,1) both; }
+        .photo-develop   { animation: photo-develop 2.2s ease both; }
+        .caption-in      { animation: caption-in 0.6s ease 0.5s both; }
+        .tape-in         { animation: tape-in 0.45s cubic-bezier(0.22,1,0.36,1) 0.15s both; transform-origin:center; }
+        .flash-in        { animation: flash-in  0.05s ease both; }
+        .flash-out       { animation: flash-out 0.75s cubic-bezier(0.4,0,1,1) both; }
+        .spotlight       { animation: spotlight-breathe 4s ease-in-out 2s infinite; }
       `}</style>
-
+ 
+      {/* Flash overlay */}
       {step >= 1 && step <= 3 && (
         <img
           src={flashImg}
           className={step === 1 ? 'flash-in' : step === 3 ? 'flash-out' : ''}
           alt=""
-          style={{
-            position:'absolute', inset:0, zIndex:50, pointerEvents:'none',
-            width:'100%', height:'100%', objectFit:'cover',
-          }}
+          style={{ position:'absolute', inset:0, zIndex:50, pointerEvents:'none', width:'100%', height:'100%', objectFit:'cover' }}
         />
       )}
-
+ 
+      {/* Breathing spotlight vignette */}
       {step >= 3 && (
-        <div style={{
+        <div className="spotlight" style={{
           position:'absolute', inset:0, pointerEvents:'none', zIndex:5,
-          background:'radial-gradient(ellipse 55% 70% at 50% 42%, transparent 0%, rgba(0,0,0,0.72) 100%)',
-          animation:'vignette-in 1.2s ease both',
+          background:'radial-gradient(ellipse 60% 70% at 50% 45%, transparent 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.9) 100%)',
+          animation:'vignette-in 1.4s ease both, spotlight-breathe 4s ease-in-out 2s infinite',
         }} />
       )}
-
-      <div style={{ position:'relative', zIndex:10, display:'flex', flexDirection:'column', alignItems:'center', gap:'1.8rem' }}>
-        <div style={{
-          width:'min(340px,82vw)', aspectRatio:'4/5', borderRadius:'3px',
-          overflow:'hidden', background:'#0a0a0a',
-          boxShadow:'0 32px 80px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06)',
-          opacity: step >= 3 ? 1 : 0,
+ 
+      {/* Film grain */}
+      <FilmGrain />
+ 
+      {/* ── Polaroid card ── */}
+      {step >= 3 && (
+        <div className="polaroid-drop" style={{
+          position:'relative', zIndex:10,
+          display:'flex', flexDirection:'column',
+          background:'#f5f0e8',
+          padding:'10px 10px 52px 10px',
+          borderRadius:'2px',
+          width:'min(290px,76vw)',
+          boxShadow:
+            '0 8px 20px rgba(0,0,0,0.35), 0 24px 60px rgba(0,0,0,0.5), 0 60px 120px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(0,0,0,0.08)',
+          transform:'rotate(-1.8deg)',
         }}>
-          {imageUrl
-            ? <img src={imageUrl} alt="Your face"
-                className={step >= 3 ? 'photo-rise' : ''}
-                style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center 20%', display:'block' }} />
-            : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'5rem' }}>📸</div>
-          }
-        </div>
-
-        {step >= 4 && (
-          <div style={{ textAlign:'center', display:'flex', flexDirection:'column', alignItems:'center', gap:'0.5rem' }}>
-            <p className="label-tag" style={{ fontFamily:"'Cinzel', serif", fontSize:'0.58rem', letterSpacing:'0.5em', color:'rgba(255,255,255,0.35)', textTransform:'uppercase', margin:0 }}>EXHIBIT A</p>
-            <div className="line-grow" style={{ width:40, height:'1px', background:'rgba(255,255,255,0.2)' }} />
-            <p className="label-title" style={{ fontFamily:"'Cinzel', serif", fontSize:'clamp(1.2rem,3.5vw,1.5rem)', fontWeight:900, color:'#fff', letterSpacing:'0.08em', textShadow:'0 2px 24px rgba(0,0,0,0.9)', margin:0 }}>หน้าตาของราชา b main</p>
+ 
+          {/* Tape strip top-center */}
+          <div className="tape-in" style={{
+            position:'absolute', top:-13, left:'50%', transform:'translateX(-50%) rotate(-2deg)',
+            width:72, height:22, zIndex:20,
+            background:'rgba(255,248,200,0.55)',
+            backdropFilter:'blur(1px)',
+            borderRadius:'1px',
+            boxShadow:'0 1px 3px rgba(0,0,0,0.15)',
+          }} />
+ 
+          {/* Photo area */}
+          <div style={{
+            width:'100%', aspectRatio:'1/1', overflow:'hidden',
+            background:'#d0c8b8',
+            position:'relative',
+          }}>
+            {imageUrl
+              ? <img
+                  src={imageUrl}
+                  alt="Your face"
+                  className="photo-develop"
+                  style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center 18%', display:'block' }}
+                />
+              : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'4rem' }}>📸</div>
+            }
+            {/* Vignette inside photo */}
+            <div style={{
+              position:'absolute', inset:0, pointerEvents:'none',
+              background:'radial-gradient(ellipse 90% 90% at 50% 50%, transparent 55%, rgba(0,0,0,0.25) 100%)',
+            }} />
           </div>
-        )}
-      </div>
+ 
+          {/* Handwritten caption */}
+          {step >= 4 && (
+            <div className="caption-in" style={{
+              position:'absolute', bottom:0, left:0, right:0, height:52,
+              display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:2,
+            }}>
+              <p style={{
+                fontFamily:"'Caveat', cursive",
+                fontSize:'clamp(1.1rem,4vw,1.35rem)',
+                fontWeight:700,
+                color:'#2a1f0e',
+                margin:0,
+                letterSpacing:'0.02em',
+                lineHeight:1,
+              }}>King of B Main</p>
+              <p style={{
+                fontFamily:"'Caveat', cursive",
+                fontSize:'0.72rem',
+                fontWeight:600,
+                color:'rgba(80,55,20,0.55)',
+                margin:0,
+                letterSpacing:'0.08em',
+              }}>2025 ✦</p>
+            </div>
+          )}
+        </div>
+      )}
     </section>
   )
 }
-
+ 
 /* ─────────────────────────────────────────────────────────────
-   Phase 3 – cinematic meme reveal: slow zoom + title card
+   Phase 3 – Polaroid meme reveal
 ───────────────────────────────────────────────────────────────*/
 function PhaseMeme({ memeUrl, creature }) {
   const [step, setStep] = useState(0)
-
+ 
   useEffect(() => {
-    const t1 = setTimeout(() => setStep(1), 200)
-    const t2 = setTimeout(() => { setStep(2); playBoom() }, 700)
-    const t3 = setTimeout(() => setStep(3), 1400)
-    return () => { [t1,t2,t3].forEach(clearTimeout) }
+    const t0 = setTimeout(() => setStep(1), 400)
+    const t1 = setTimeout(() => setStep(2), 1200)
+    const t2 = setTimeout(() => setStep(3), 2000)
+    return () => { [t0,t1,t2].forEach(clearTimeout) }
   }, [])
-
+ 
   return (
     <section style={{
-      minHeight: '100dvh', background: '#06060a', overflow: 'hidden',
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      gap: '2rem', position: 'relative',
+      minHeight:'100dvh', background:'#111009', overflow:'hidden',
+      display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+      position:'relative',
     }}>
-      <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap' />
       <style>{`
-        @keyframes vs-reveal {
-          from { opacity: 0; letter-spacing: 0.8em; }
-          to   { opacity: 1; letter-spacing: 0.35em; }
+        @keyframes p3-bg-zoom {
+          from { transform:scale(1.1); opacity:0.3; }
+          to   { transform:scale(1);  opacity:0.18; }
         }
-        @keyframes meme-zoom {
-          from { opacity: 0; transform: scale(1.08); }
-          to   { opacity: 1; transform: scale(1); }
+        @keyframes p3-polaroid-drop {
+          0%   { opacity:0; transform:rotate(3deg) translateY(-50px) scale(0.92); }
+          55%  { opacity:1; transform:rotate(-2deg) translateY(5px) scale(1.01); }
+          75%  { transform:rotate(1deg) translateY(-2px); }
+          100% { opacity:1; transform:rotate(2deg) translateY(0) scale(1); }
         }
-        @keyframes creature-slide {
-          from { opacity: 0; transform: translateY(14px); }
-          to   { opacity: 1; transform: translateY(0); }
+        @keyframes p3-img-develop {
+          0%   { filter:brightness(2) saturate(0) sepia(0.9); }
+          50%  { filter:brightness(1.3) saturate(0.4) sepia(0.3); }
+          100% { filter:brightness(1) saturate(1) sepia(0); }
         }
-        @keyframes badge-in {
-          0%   { opacity: 0; transform: scale(0.6) rotate(20deg); }
-          70%  { transform: scale(1.1) rotate(10deg); }
-          100% { opacity: 1; transform: scale(1)   rotate(12deg); }
+        @keyframes p3-caption {
+          from { opacity:0; transform:translateY(5px); }
+          to   { opacity:1; transform:translateY(0); }
         }
-        @keyframes hr-expand {
-          from { transform: scaleX(0); } to { transform: scaleX(1); }
+        @keyframes p3-tape {
+          from { opacity:0; transform:translateX(-50%) scaleX(0) rotate(3deg); }
+          to   { opacity:1; transform:translateX(-50%) scaleX(1) rotate(3deg); }
         }
-        .vs-reveal      { animation: vs-reveal 0.7s cubic-bezier(0.22,1,0.36,1) both; }
-        .meme-zoom      { animation: meme-zoom 0.9s cubic-bezier(0.16,1,0.3,1) both; }
-        .creature-slide { animation: creature-slide 0.55s cubic-bezier(0.22,1,0.36,1) both; }
-        .badge-in       { animation: badge-in 0.45s cubic-bezier(0.34,1.56,0.64,1) 0.2s both; }
-        .hr-expand      { animation: hr-expand 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both; transform-origin: center; }
+        .p3-polaroid { animation: p3-polaroid-drop 0.9s cubic-bezier(0.34,1.2,0.64,1) 0.3s both; }
+        .p3-develop  { animation: p3-img-develop 2.5s ease both; }
+        .p3-caption  { animation: p3-caption 0.6s ease 0.7s both; }
+        .p3-tape     { animation: p3-tape 0.4s cubic-bezier(0.22,1,0.36,1) 0.2s both; transform-origin:center; }
       `}</style>
-
-      <div style={{
-        position: 'absolute', top: '50%', left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: '70vw', height: '70vw', maxWidth: 520,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(250,204,21,0.06) 0%, transparent 65%)',
-        pointerEvents: 'none',
-        transition: 'opacity 0.8s',
-        opacity: step >= 2 ? 1 : 0,
-      }} />
-
-      {step >= 1 && (
-        <p className="vs-reveal" style={{
-          fontFamily: "'Cinzel', serif", fontSize: '0.65rem',
-          letterSpacing: '0.35em', color: 'rgba(255,255,255,0.28)',
-          textTransform: 'uppercase', margin: 0,
-        }}>VS</p>
+ 
+      {/* Blurred bg from meme */}
+      {step >= 1 && memeUrl && (
+        <img src={memeUrl} alt="" style={{
+          position:'absolute', inset:0, width:'100%', height:'100%',
+          objectFit:'cover', zIndex:1, filter:'blur(28px) saturate(0.4)',
+          animation:'p3-bg-zoom 1.5s cubic-bezier(0.16,1,0.3,1) both',
+        }} />
       )}
-
-      <div style={{ position: 'relative' }}>
-        <div style={{
-          width: 'min(300px,75vw)', aspectRatio: '1/1',
-          borderRadius: '6px', overflow: 'hidden',
-          background: '#111',
-          boxShadow: step >= 2
-            ? '0 24px 80px rgba(0,0,0,0.9), 0 0 0 1px rgba(250,204,21,0.25)'
-            : '0 24px 80px rgba(0,0,0,0.9)',
-          transition: 'box-shadow 0.6s',
-          opacity: step >= 2 ? 1 : 0,
+      <div style={{ position:'absolute', inset:0, zIndex:2, background:'rgba(0,0,0,0.72)' }} />
+ 
+      {/* Polaroid card */}
+      {step >= 2 && (
+        <div className="p3-polaroid" style={{
+          position:'relative', zIndex:10,
+          display:'flex', flexDirection:'column',
+          background:'#f2ede3',
+          padding:'10px 10px 60px 10px',
+          borderRadius:'2px',
+          width:'min(300px,78vw)',
+          boxShadow:
+            '0 8px 16px rgba(0,0,0,0.3), 0 28px 70px rgba(0,0,0,0.55), 0 60px 120px rgba(0,0,0,0.5)',
+          transform:'rotate(2deg)',
         }}>
-          {memeUrl
-            ? <img src={memeUrl} crossOrigin="anonymous" alt={creature}
-                className={step >= 2 ? 'meme-zoom' : ''}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }} />
-            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4rem', background: '#111' }}>🐾</div>
-          }
-        </div>
-
-        {step >= 3 && (
-          <div className="badge-in" style={{
-            position: 'absolute', top: '-12px', right: '-12px',
-            background: '#facc15', color: '#000',
-            fontFamily: 'monospace', fontWeight: 900, fontSize: '0.65rem',
-            letterSpacing: '0.08em', padding: '4px 9px', borderRadius: '3px',
-            boxShadow: '0 4px 16px rgba(250,204,21,0.4)',
-          }}>MATCH</div>
-        )}
-      </div>
-
-      {step >= 3 && (
-        <div className="creature-slide" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.6rem' }}>
-          <div className="hr-expand" style={{ width: 32, height: '1px', background: 'rgba(250,204,21,0.5)' }} />
-          <p style={{
-            fontFamily: "'Cinzel', serif",
-            fontSize: 'clamp(1.6rem, 4vw, 2.2rem)',
-            fontWeight: 900, color: '#fff', letterSpacing: '0.06em',
-            textTransform: 'uppercase', margin: 0,
-            textShadow: '0 0 40px rgba(250,204,21,0.2)',
-          }}>{creature || 'ANIMAL'}</p>
-          <p style={{
-            fontFamily: 'monospace', fontSize: '0.6rem',
-            color: 'rgba(255,255,255,0.22)', letterSpacing: '0.3em', margin: 0,
-          }}>ใช่มั้ยว่ะ???</p>
+ 
+          {/* Tape */}
+          <div className="p3-tape" style={{
+            position:'absolute', top:-14, left:'50%',
+            transform:'translateX(-50%) rotate(3deg)',
+            width:80, height:24, zIndex:20,
+            background:'rgba(255,248,190,0.52)',
+            backdropFilter:'blur(2px)',
+            borderRadius:'1px',
+            boxShadow:'0 1px 4px rgba(0,0,0,0.12)',
+          }} />
+ 
+          {/* Photo */}
+          <div style={{ width:'100%', aspectRatio:'1/1', overflow:'hidden', background:'#c8c0b0', position:'relative' }}>
+            {memeUrl
+              ? <img src={memeUrl} alt="meme" className="p3-develop"
+                  style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top', display:'block' }} />
+              : <div style={{ width:'100%', height:'100%', background:'#c8c0b0' }} />
+            }
+            <div style={{
+              position:'absolute', inset:0, pointerEvents:'none',
+              background:'radial-gradient(ellipse 90% 90% at 50% 50%, transparent 50%, rgba(0,0,0,0.22) 100%)',
+            }} />
+          </div>
+ 
+          {/* Caption */}
+          {step >= 3 && (
+            <div className="p3-caption" style={{
+              position:'absolute', bottom:0, left:0, right:0, height:60,
+              display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:3,
+            }}>
+              <p style={{
+                fontFamily:"'Caveat', cursive",
+                fontSize:'clamp(1rem,3.5vw,1.25rem)',
+                fontWeight:700, color:'#2a1f0e', margin:0, letterSpacing:'0.02em', lineHeight:1,
+              }}>{creature}</p>
+              <p style={{
+                fontFamily:"'Caveat', cursive",
+                fontSize:'0.7rem', fontWeight:600,
+                color:'rgba(80,55,20,0.5)', margin:0, letterSpacing:'0.06em',
+              }}>b main scanner ✦</p>
+            </div>
+          )}
         </div>
       )}
     </section>
@@ -896,7 +1146,7 @@ function ResultPage({ result, onScanAgain, onBackHome }) {
 
     const timings = [
       setTimeout(() => setPhase(2), 4000),
-      setTimeout(() => setPhase(3), 9000),
+      setTimeout(() => setPhase(3), 6000),
       setTimeout(() => setPhase(4), 12000),
     ]
     return () => timings.forEach(clearTimeout)
