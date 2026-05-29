@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { getAnimalProfile } from '../utils/animalProfile'
 import end1Bg from '../assets/end_1.jpg'
-import flashImg from '../assets/flash.jpg'  // 👈 เปลี่ยนชื่อไฟล์ให้ตรงกับของจริง
+import flashImg from '../assets/flash.jpg'
 import html2canvas from 'html2canvas'
 
 /* ─────────────────────────────────────────────────────────────
@@ -45,24 +45,23 @@ function playBoom() {
   boomAudio.play().catch(() => {})
 }
 
-// preload เสียง flash ไว้รอเลย ไม่ต้อง load ตอน trigger
 const flashAudio = new Audio('/sounds/flash.mp3')
 flashAudio.volume = 1.0
 flashAudio.load()
 
 function playFlashSound() {
-  flashAudio.currentTime = 0  // reset ให้เล่นจากต้น
+  flashAudio.currentTime = 0
   flashAudio.play().catch(() => {})
 }
 
 function PhaseFace({ imageUrl }) {
-  const [step, setStep] = useState(0) // 0=black 1=flash-in 2=flash-hold 3=flash-out+photo 4=label
+  const [step, setStep] = useState(0)
 
   useEffect(() => {
     const t0 = setTimeout(() => { setStep(1); playFlashSound() }, 300)
-    const t1 = setTimeout(() => setStep(2), 350)   // ค้าง hold
-    const t2 = setTimeout(() => { setStep(3); playBoom() }, 850)   // fade out + รูปโผล่
-    const t3 = setTimeout(() => setStep(4), 1650)  // label ขึ้น
+    const t1 = setTimeout(() => setStep(2), 350)
+    const t2 = setTimeout(() => { setStep(3); playBoom() }, 850)
+    const t3 = setTimeout(() => setStep(4), 1650)
     return () => { [t0,t1,t2,t3].forEach(clearTimeout) }
   }, [])
 
@@ -91,7 +90,6 @@ function PhaseFace({ imageUrl }) {
         .line-grow   { animation: line-grow 0.5s cubic-bezier(0.22,1,0.36,1) 0.06s both; transform-origin:left; }
       `}</style>
 
-      {/* Phoenix flash — รูปภาพค้าง 500ms แล้ว fade */}
       {step >= 1 && step <= 3 && (
         <img
           src={flashImg}
@@ -104,7 +102,6 @@ function PhaseFace({ imageUrl }) {
         />
       )}
 
-      {/* Vignette หลัง flash */}
       {step >= 3 && (
         <div style={{
           position:'absolute', inset:0, pointerEvents:'none', zIndex:5,
@@ -144,11 +141,11 @@ function PhaseFace({ imageUrl }) {
    Phase 3 – cinematic meme reveal: slow zoom + title card
 ───────────────────────────────────────────────────────────────*/
 function PhaseMeme({ memeUrl, creature }) {
-  const [step, setStep] = useState(0) // 0=black, 1=vs-line, 2=meme-in, 3=creature-in
+  const [step, setStep] = useState(0)
 
   useEffect(() => {
     const t1 = setTimeout(() => setStep(1), 200)
-    const t2 = setTimeout(() => { setStep(2); playBoom() }, 700)  // เสียงตอนมีมโผล่
+    const t2 = setTimeout(() => { setStep(2); playBoom() }, 700)
     const t3 = setTimeout(() => setStep(3), 1400)
     return () => { [t1,t2,t3].forEach(clearTimeout) }
   }, [])
@@ -188,7 +185,6 @@ function PhaseMeme({ memeUrl, creature }) {
         .hr-expand      { animation: hr-expand 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both; transform-origin: center; }
       `}</style>
 
-      {/* Ambient glow */}
       <div style={{
         position: 'absolute', top: '50%', left: '50%',
         transform: 'translate(-50%, -50%)',
@@ -200,7 +196,6 @@ function PhaseMeme({ memeUrl, creature }) {
         opacity: step >= 2 ? 1 : 0,
       }} />
 
-      {/* VS label */}
       {step >= 1 && (
         <p className="vs-reveal" style={{
           fontFamily: "'Cinzel', serif", fontSize: '0.65rem',
@@ -209,7 +204,6 @@ function PhaseMeme({ memeUrl, creature }) {
         }}>VS</p>
       )}
 
-      {/* Meme frame */}
       <div style={{ position: 'relative' }}>
         <div style={{
           width: 'min(300px,75vw)', aspectRatio: '1/1',
@@ -240,7 +234,6 @@ function PhaseMeme({ memeUrl, creature }) {
         )}
       </div>
 
-      {/* Creature name */}
       {step >= 3 && (
         <div className="creature-slide" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.6rem' }}>
           <div className="hr-expand" style={{ width: 32, height: '1px', background: 'rgba(250,204,21,0.5)' }} />
@@ -263,14 +256,36 @@ function PhaseMeme({ memeUrl, creature }) {
 
 
 /* ─────────────────────────────────────────────────────────────
-    Phase 4 – The Final Result & Photo Strip
+   Phase 4 – The Final Result & Photo Strip
 ───────────────────────────────────────────────────────────────*/
+
+// 🎯 Valorant rank config — สี + ไอคอน
+const VALORANT_RANKS = {
+  UNRANKED:  { color: '#9e9e9e', glow: 'rgba(158,158,158,0.3)',  label: 'UNRANKED'  },
+  IRON:      { color: '#8a8a8a', glow: 'rgba(138,138,138,0.3)',  label: 'IRON'      },
+  BRONZE:    { color: '#cd7f32', glow: 'rgba(205,127,50,0.35)',   label: 'BRONZE'    },
+  SILVER:    { color: '#b0b8c1', glow: 'rgba(176,184,193,0.35)', label: 'SILVER'    },
+  GOLD:      { color: '#f5c842', glow: 'rgba(245,200,66,0.4)',   label: 'GOLD'      },
+  PLATINUM:  { color: '#4ecdc4', glow: 'rgba(78,205,196,0.4)',   label: 'PLATINUM'  },
+  DIAMOND:   { color: '#9ecfec', glow: 'rgba(158,207,236,0.45)', label: 'DIAMOND'   },
+  IMMORTAL:  { color: '#ff4655', glow: 'rgba(255,70,85,0.5)',    label: 'IMMORTAL'  },
+  RADIANT:   { color: '#fffb8f', glow: 'rgba(255,251,143,0.6)',  label: 'RADIANT'   },
+}
+
+function getRarityColor(rank) {
+  return VALORANT_RANKS[rank]?.color ?? '#fbbf24'
+}
+
+function getRarityGlow(rank) {
+  return VALORANT_RANKS[rank]?.glow ?? 'rgba(251,191,36,0.3)'
+}
+
 function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onScanAgain, onBackHome }) {
   const animalProfile = getAnimalProfile(result)
   const score = result?.animal_score ?? result?.npc_score ?? 0
   const barRef = useRef(null)
-  const photoCardRef = useRef(null) 
-  const downloadCardRef = useRef(null) 
+  const photoCardRef = useRef(null)
+  const downloadCardRef = useRef(null)
   const [isSaving, setIsSaving] = useState(false)
 
   // 🎯 Reflex stats
@@ -283,26 +298,65 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
     : null
   const missCount = reflexData.filter(r => r.verdict !== 'perfect').length
 
-  const getReflexRoast = () => {
-    if (reflexData.length === 0) return { title: 'ไม่มีข้อมูล', sub: 'มึงกดอะไรเลย', color: '#666' }
-    if (missCount >= 4) return { title: 'ไม้เท้ายายยิงปืน', sub: `พลาด ${missCount} รอบ reaction ช้ากว่าคนหมดสติ`, color: '#ff4444' }
-    if (missCount >= 2) return { title: 'อย่าเล่น FPS', sub: `พลาด ${missCount} รอบ แค่กดปุ่มยังไม่รอด`, color: '#ff9900' }
-    if (avgReflex === null) return { title: 'ยิงก่อนผีโผล่', sub: 'trigger discipline = ลบอนันต์', color: '#ffaa00' }
-    if (avgReflex < 150) return { title: 'ไวผิดมนุษย์ ⚡', sub: `avg ${avgReflex}ms anti-cheat จะมาเยี่ยม`, color: '#00ff88' }
-    if (avgReflex < 250) return { title: 'ฝีมือพอมีอยู่', sub: `avg ${avgReflex}ms ยังพอ carry ได้ถ้าไม่โยนเอง`, color: '#00dd77' }
-    if (avgReflex < 400) return { title: 'Gold rank energy', sub: `avg ${avgReflex}ms เล่นได้แต่ไม่มีอนาคต`, color: '#88ccff' }
-    return { title: 'เดินไปซื้อผักดีกว่า 🥬', sub: `avg ${avgReflex}ms ช้ากว่ายายกด ATM`, color: '#ff4444' }
-  }
+  // 🎯 AI Reflex Roast
+  const [roast, setRoast] = useState({ title: '...', sub: '...', color: 'rgba(255,255,255,0.2)' })
+  const [roastLoading, setRoastLoading] = useState(true)
 
-  const roast = getReflexRoast()
+  useEffect(() => {
+    if (reflexData.length === 0) {
+      setRoast({ title: 'ไม่มีข้อมูล', sub: 'มึงกดอะไรเลย ทำไมมาเล่น', color: '#555' })
+      setRoastLoading(false)
+      return
+    }
+    const fetchReflexRoast = async () => {
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 1000,
+            system: 'คุณคือโค้ช FPS ที่ toxic และ bully ตลอดเวลา ไม่ว่า aim จะดีแค่ไหนก็ด่าเสมอ ถ้าเก่งก็หาเรื่องด่าเรื่องอื่น ตอบเป็น JSON เท่านั้น ไม่มี markdown format: {"title":"...","sub":"...","color":"..."} title คือหัวข้อสั้นโหด (3-5 คำ ภาษาไทยหรือ English mixed), sub คือประโยคซ้ำเติมยาวขึ้นหน่อย, color คือ hex color สีส้มหรือแดงเท่านั้น (#ff4444 หรือ #ff6600 หรือ #ff4488)',
+            messages: [{
+              role: 'user',
+              content: 'วิเคราะห์ aim แล้วบูลลี่:\n' +
+                '- hit: ' + perfectRounds.length + ' รอบ\n' +
+                '- miss: ' + missCount + ' รอบ\n' +
+                '- avg reaction time: ' + (avgReflex !== null ? avgReflex + 'ms' : 'ไม่มีข้อมูล (กดก่อนผีโผล่ทุกรอบ)') + '\n\n' +
+                'ถ้า avg ต่ำมาก (ไวมาก) ให้สงสัยว่าโกง หรือบอกว่าเก่ง FPS แต่ชีวิตจริงยังไม่มีแฟน ถ้า miss เยอะให้ถล่มซะ ถ้า hit หมดแต่ช้าให้บอกว่า grandma speedrun ห้ามชม ห้ามพูดดีเด็ดขาด'
+            }]
+          })
+        })
+        const data = await res.json()
+        console.log('[ReflexRoast] API response:', data)
+        if (data.error) throw new Error(data.error.message || 'API error')
+        const text = data.content?.find(c => c.type === 'text')?.text || ''
+        const clean = text.replace(/```json|```/g, '').trim()
+        const parsed = JSON.parse(clean)
+        setRoast(parsed)
+      } catch (err) {
+        console.error('[ReflexRoast] failed:', err)
+        if (missCount >= 4) setRoast({ title: 'ไม้เท้ายายยิงปืน', sub: `พลาด ${missCount} รอบ reaction ช้ากว่าคนหมดสติ`, color: '#ff4444' })
+        else if (missCount >= 2) setRoast({ title: 'อย่าเล่น FPS', sub: `พลาด ${missCount} รอบ แค่กดปุ่มยังช่วยตัวเองไม่รอด`, color: '#ff6600' })
+        else if (avgReflex === null) setRoast({ title: 'ยิงก่อนผีโผล่', sub: 'กดก่อนเห็นอะไร = สมองไม่ทำงาน', color: '#ffaa00' })
+        else if (avgReflex < 150) setRoast({ title: 'Bot ใช่มั้ย 🤖', sub: `avg ${avgReflex}ms เร็วแบบนี้ชีวิตจริงยังไม่มีแฟน`, color: '#ff4488' })
+        else if (avgReflex < 250) setRoast({ title: 'Aim ดี แต่หน้าไม่ดี', sub: `avg ${avgReflex}ms ไวแต่แพ้ตอนเปิดกล้อง`, color: '#ff6633' })
+        else if (avgReflex < 400) setRoast({ title: 'Mediocre ทุกมิติ', sub: `avg ${avgReflex}ms กลางๆ เหมือนทุกอย่างในชีวิต`, color: '#ff8844' })
+        else setRoast({ title: 'เดินไปซื้อผักดีกว่า 🥬', sub: `avg ${avgReflex}ms ช้ากว่ายายกด ATM`, color: '#ff4444' })
+      } finally {
+        setRoastLoading(false)
+      }
+    }
+    fetchReflexRoast()
+  }, [])
 
-  // 🌟 ฟังก์ชันช่วยแยก Request ของรูปมีมเพื่อป้องกันอาการรูปแตก (CORS Cache)
+  // 🌟 helper แยก request รูปมีม
   const getMemeUrlForIndex = (url, index) => {
     if (!url || url.startsWith('data:')) return url;
     const separator = url.includes('?') ? '&' : '?';
     return `${url}${separator}shot=${index}`;
   };
-  
+
   useEffect(() => {
     const t = setTimeout(() => {
       if (barRef.current) barRef.current.style.width = `${score}%`
@@ -310,15 +364,110 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
     return () => clearTimeout(t)
   }, [score])
 
+  // 🎰 slot machine spin
+  const [displayScore, setDisplayScore] = useState(0)
+  const [displayAura, setDisplayAura] = useState('???')
+  const [displayBrain, setDisplayBrain] = useState('???')
+  const [displayRarity, setDisplayRarity] = useState('UNRANKED')
+
+  // 🎯 Valorant Rank — map จาก miss count + avg reflex
+  const getDramaticRarity = () => {
+    if (reflexData.length === 0) return 'UNRANKED'
+    if (missCount === 0 && avgReflex !== null && avgReflex < 150) return 'RADIANT'
+    if (missCount === 0 && avgReflex !== null && avgReflex < 220) return 'IMMORTAL'
+    if (missCount === 0) return 'DIAMOND'
+    if (missCount <= 1) return 'PLATINUM'
+    if (missCount <= 2) return 'GOLD'
+    if (missCount <= 3) return 'SILVER'
+    if (missCount <= 4) return 'BRONZE'
+    return 'IRON'
+  }
+
+  // Aura = วัดจาก hit rate
+  const getDramaticAura = () => {
+    if (reflexData.length === 0) return '???'
+    const hitRate = perfectRounds.length / reflexData.length
+    if (hitRate >= 1 && avgReflex !== null && avgReflex < 150) return '+9,999,999,999'
+    if (hitRate >= 1) return '+999,999'
+    if (hitRate >= 0.75) return '+1,337'
+    if (hitRate >= 0.5) return '-666,666'
+    if (hitRate >= 0.25) return '-9,999,999'
+    return '-∞∞∞∞∞∞∞'
+  }
+
+  // Braincells = วัดจาก avg ms
+  const getDramaticBrain = () => {
+    if (reflexData.length === 0) return '???'
+    if (avgReflex === null) return '-∞'
+    if (avgReflex < 120) return '-9,999,999'
+    if (avgReflex < 200) return '+420'
+    if (avgReflex < 300) return '-69'
+    if (avgReflex < 500) return '-9,999,999'
+    return '-∞'
+  }
+
+  useEffect(() => {
+    // spin score
+    let start = null
+    const duration = 1400
+    const spinScore = (ts) => {
+      if (!start) start = ts
+      const progress = Math.min((ts - start) / duration, 1)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      if (progress < 0.75) {
+        setDisplayScore(Math.floor(Math.random() * 100))
+      } else {
+        setDisplayScore(Math.round(eased * score))
+      }
+      if (progress < 1) requestAnimationFrame(spinScore)
+      else setDisplayScore(score)
+    }
+    const raf = requestAnimationFrame(spinScore)
+
+    // spin aura
+    const auraVals = ['-∞', '+∞', '-9999999', '+9999999', '0', '-666', '+1337', '-99999999999']
+    let auraI = 0
+    const auraTimer = setInterval(() => {
+      setDisplayAura(auraVals[auraI % auraVals.length])
+      auraI++
+    }, 80)
+    setTimeout(() => { clearInterval(auraTimer); setDisplayAura(getDramaticAura()) }, 1600)
+
+    // spin braincells
+    const brainVals = ['-∞', '+∞', '0', '-9999', '+9999', '-1', '+69420', '-999999']
+    let brainI = 0
+    const brainTimer = setInterval(() => {
+      setDisplayBrain(brainVals[brainI % brainVals.length])
+      brainI++
+    }, 90)
+    setTimeout(() => { clearInterval(brainTimer); setDisplayBrain(getDramaticBrain()) }, 1800)
+
+    // 🎯 spin rarity — Valorant ranks
+    const rarityVals = ['IRON', 'BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND', 'IMMORTAL', 'RADIANT', 'UNRANKED']
+    let rarityI = 0
+    const rarityTimer = setInterval(() => {
+      setDisplayRarity(rarityVals[rarityI % rarityVals.length])
+      rarityI++
+    }, 100)
+    setTimeout(() => { clearInterval(rarityTimer); setDisplayRarity(getDramaticRarity()) }, 2000)
+
+    return () => {
+      cancelAnimationFrame(raf)
+      clearInterval(auraTimer)
+      clearInterval(brainTimer)
+      clearInterval(rarityTimer)
+    }
+  }, [])
+
   const handleSaveImage = async () => {
     if (!downloadCardRef.current || isSaving) return;
     try {
       setIsSaving(true);
       const canvas = await html2canvas(downloadCardRef.current, {
-        useCORS: true,        
+        useCORS: true,
         allowTaint: false,
-        backgroundColor: null, 
-        scale: 3, 
+        backgroundColor: null,
+        scale: 3,
         logging: false
       });
       const dataUrl = canvas.toDataURL('image/png');
@@ -355,7 +504,12 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
         @keyframes drift { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-6px) rotate(-2deg)} }
         @keyframes scan-line { 0%{top:-4px} 100%{top:calc(100% + 4px)} }
         @keyframes shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
-        
+        @keyframes roast-scan { 0%{left:-100%} 100%{left:110%} }
+        @keyframes verdict-in { 0%{opacity:0;transform:scale(0.85) translateY(4px)} 60%{transform:scale(1.04)} 100%{opacity:1;transform:scale(1) translateY(0)} }
+        @keyframes roast-pulse { 0%,100%{opacity:0.3} 50%{opacity:0.7} }
+        @keyframes roast-glow-breathe { 0%,100%{box-shadow:0 0 18px rgba(220,38,38,0.12), inset 0 1px 0 rgba(255,255,255,0.04)} 50%{box-shadow:0 0 32px rgba(220,38,38,0.22), inset 0 1px 0 rgba(255,255,255,0.06)} }
+        @keyframes rank-glow-pulse { 0%,100%{text-shadow:0 0 12px currentColor} 50%{text-shadow:0 0 28px currentColor, 0 0 48px currentColor} }
+
         .r1 { animation: rise 0.4s cubic-bezier(0.22,1,0.36,1) 0.05s both; }
         .r2 { animation: rise 0.4s cubic-bezier(0.22,1,0.36,1) 0.12s both; }
         .r3 { animation: scale-in 0.5s cubic-bezier(0.16,1,0.3,1) 0.18s both; }
@@ -363,10 +517,10 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
         .r5 { animation: rise 0.4s cubic-bezier(0.22,1,0.36,1) 0.32s both; }
         .r6 { animation: rise 0.4s cubic-bezier(0.22,1,0.36,1) 0.40s both; }
         .r7 { animation: rise 0.4s cubic-bezier(0.22,1,0.36,1) 0.48s both; }
-        
+
         .photo-card { animation: scale-in 0.5s cubic-bezier(0.16,1,0.3,1) 0.15s both; }
         .drift { animation: drift 5s ease-in-out infinite; }
-        
+
         .creature-shimmer {
           background: linear-gradient(90deg, #ffffff 0%, #fff7ed 15%, #ff7849 35%, #f59e0b 50%, #ff7849 65%, #fff7ed 85%, #ffffff 100%);
           background-size: 200% auto;
@@ -375,17 +529,20 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
           background-clip: text;
           animation: shimmer 4s linear 1s 1 forwards;
         }
+        .rank-text-radiant  { animation: rank-glow-pulse 2s ease-in-out infinite; }
+        .rank-text-immortal { animation: rank-glow-pulse 2.5s ease-in-out infinite; }
+
         .glow-btn { transition: all 0.2s; }
         .glow-btn:hover { box-shadow: 0 0 28px rgba(249,115,22,0.55); transform: translateY(-1px); }
         .glow-btn:active { transform: scale(0.98); }
-        
+
         .save-btn { transition: all 0.2s; background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%); color: #fff; border: none; }
         .save-btn:hover { box-shadow: 0 0 28px rgba(245,158,11,0.6); transform: translateY(-1px); }
         .save-btn:active { transform: scale(0.98); }
 
         .ghost-btn { transition: all 0.2s; }
         .ghost-btn:hover { border-color: rgba(255,255,255,0.4) !important; color: #fff !important; background: rgba(255,255,255,0.03); }
-        
+
         .tag-pill { transition: all 0.15s; cursor: default; }
         .tag-pill:hover { background: rgba(249,115,22,0.15); border-color: rgba(249,115,22,0.4); color: #ff9a52; }
         .photo-strip-img { transition: filter 0.3s; }
@@ -428,11 +585,11 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
         }
       `}</style>
 
-      {/* พื้นหลัง */}
+      {/* พื้นหลัง glow */}
       <div style={{ position: 'fixed', top: '-10%', right: '-10%', width: '50vw', height: '50vw', maxWidth: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(249,115,22,0.12) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ position: 'fixed', bottom: '-10%', left: '-10%', width: '40vw', height: '40vw', maxWidth: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
 
-      {/* 🛑 [SECRET EXPORT ZONE] (แผ่นการ์ดซ่อนไว้ให้ html2canvas โหลด) */}
+      {/* 🛑 [SECRET EXPORT ZONE] */}
       <div ref={downloadCardRef} style={{
         position: 'absolute', left: '-9999px', top: '-9999px',
         background: 'linear-gradient(160deg, #ffffff 0%, #f7f3eb 100%)',
@@ -441,11 +598,9 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
       }}>
         {['grayscale(0.1) sepia(0.02)', 'none', 'grayscale(0.3) contrast(1.15)'].map((filter, i) => {
           const userImgUrl = userPhotos[i];
-          const currentMemeUrl = matchedMemeUrls[i]; // 👈 ดึงมีมช่อง 1, 2, 3 ตาม Index
-          
+          const currentMemeUrl = matchedMemeUrls[i];
           const isUserBase64 = userImgUrl?.startsWith('data:');
           const isMemeBase64 = currentMemeUrl?.startsWith('data:');
-
           return (
             <div key={i} style={{ display: 'flex', gap: '6px' }}>
               <div style={{ flex: 1, aspectRatio: '1/1', overflow: 'hidden', background: '#d1d1d1' }}>
@@ -472,7 +627,7 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
       </div>
 
       <div className="layout-container" style={{ position: 'relative', zIndex: 10 }}>
-        {/* ══ ฝั่งซ้าย: Photo Strip บนหน้าจอเว็บ ══ */}
+        {/* ══ ฝั่งซ้าย: Photo Strip ══ */}
         <div className="col-left r3">
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.55rem', letterSpacing: '0.3em', color: 'rgba(249,115,22,0.6)', textTransform: 'uppercase', margin: 0, fontWeight: 500 }}>YOU ↔ MATCH</p>
@@ -489,20 +644,16 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
 
               {['grayscale(0.1) sepia(0.02)', 'none', 'grayscale(0.3) contrast(1.15)'].map((filter, i) => {
                 const userImgUrl = userPhotos[i];
-                const currentMemeUrl = matchedMemeUrls[i]; // 👈 ดึงมีมช่อง 1, 2, 3 แยกกัน
-                
+                const currentMemeUrl = matchedMemeUrls[i];
                 const isUserBase64 = userImgUrl?.startsWith('data:');
                 const isMemeBase64 = currentMemeUrl?.startsWith('data:');
-
                 return (
                   <div key={i} style={{ display: 'flex', gap: 'clamp(4px, 0.8vw, 6px)' }}>
-                    {/* 🌟 ดึงรูปที่แอบถ่ายทั้ง 3 ช็อตมาแสดง */}
                     <div style={{ flex: 1, aspectRatio: '1/1', overflow: 'hidden', background: '#d1d1d1' }}>
                       {userImgUrl
                         ? <img src={userImgUrl} crossOrigin={isUserBase64 ? undefined : "anonymous"} alt="You" className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter }} />
                         : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: '#e5e5e5' }}>📸</div>}
                     </div>
-                    {/* 🌟 รูปมีม (แสดง 3 รูปไม่ซ้ำ ถ้าหลังบ้านส่งมาเป็น Array) */}
                     <div style={{ flex: 1, aspectRatio: '1/1', overflow: 'hidden', background: '#d1d1d1' }}>
                       {currentMemeUrl
                         ? <img src={getMemeUrlForIndex(currentMemeUrl, i)} crossOrigin={isMemeBase64 ? undefined : "anonymous"} alt={animalProfile.title} className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', filter }} />
@@ -524,10 +675,10 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
           </div>
         </div>
 
-        {/* ══ ฝั่งขวา: รายละเอียดข้อมูลต่างๆ ══ */}
+        {/* ══ ฝั่งขวา: รายละเอียด ══ */}
         <div className="col-right">
           <div className="r1" style={{ marginBottom: 'clamp(0.8rem, 1.5vw, 1.2rem)' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
               <div style={{ height: '1px', width: 24, background: 'rgba(249,115,22,0.6)' }} />
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.55rem', letterSpacing: '0.3em', color: '#ff9a52', textTransform: 'uppercase', margin: 0, fontWeight: 500 }}>Animal Result</p>
             </div>
@@ -536,10 +687,10 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
               fontSize: 'clamp(2.4rem, 4.8vw, 4.4rem)',
               fontWeight: 900,
               lineHeight: 0.95,
-              margin: '0 0 0.4rem',
+              margin: '0 0 0.6rem',
               letterSpacing: '-0.01em',
-            }}>{result.creature}</h1>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontStyle: 'italic', fontSize: '0.82rem', color: 'rgba(255,255,255,0.4)', margin: 0, letterSpacing: '0.04em', fontWeight: 300 }}>สรุปสัตว์มีมที่ใกล้กับ vibe ของคุณที่สุด</p>
+            }}>King of B main</h1>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontStyle: 'italic', fontSize: '0.82rem', color: 'rgba(255,255,255,0.4)', margin: 0, letterSpacing: '0.04em', fontWeight: 300 }}>{result.creature}</p>
           </div>
 
           <div className="r2" style={{ width: '100%', height: '1px', background: 'linear-gradient(90deg, rgba(249,115,22,0.35) 0%, rgba(255,255,255,0.08) 70%, transparent 100%)', marginBottom: 'clamp(1rem, 2vw, 1.5rem)' }} />
@@ -549,7 +700,7 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
               <div>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.55rem', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', margin: '0 0 0.1rem', fontWeight: 500 }}>Match Score</p>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.2rem' }}>
-                  <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(3.2rem, 6.5vw, 4.8rem)', fontWeight: 900, lineHeight: 1, color: '#ff7849', textShadow: '0 0 35px rgba(249,115,22,0.55)' }}>{score}</span>
+                  <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(3.2rem, 6.5vw, 4.8rem)', fontWeight: 900, lineHeight: 1, color: '#ff7849', textShadow: '0 0 35px rgba(249,115,22,0.55)' }}>{displayScore}</span>
                   <span style={{ fontFamily: "'Cinzel', serif", fontSize: '1.3rem', fontWeight: 700, color: 'rgba(249,115,22,0.65)' }}>%</span>
                 </div>
               </div>
@@ -562,17 +713,78 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
             </div>
           </div>
 
+          {/* 🎯 Stat cards — Rarity ใช้ Valorant rank */}
           <div className="r5" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: 'clamp(0.8rem, 1.5vw, 1.2rem)' }}>
             {[
-              { label: 'Aura', val: result.aura, icon: '✦', accent: 'rgba(249,115,22,', textColor: '#ff9a52' },
+              { label: 'Aura',       val: result.aura,      icon: '✦', accent: 'rgba(249,115,22,', textColor: '#ff9a52' },
               { label: 'Braincells', val: result.braincells, icon: '◈', accent: 'rgba(139,92,246,', textColor: '#a78bfa' },
-              { label: 'Rarity', val: result.rarity, icon: '◇', accent: 'rgba(245,158,11,', textColor: '#fbbf24' },
-            ].map(({ label, val, icon, accent, textColor }) => (
-              <div key={label} style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accent}0.18)`, borderTop: `2px solid ${accent}0.65)`, borderRadius: 12, padding: '0.95rem 0.5rem', textAlign: 'center', position: 'relative', overflow: 'hidden', boxShadow: `inset 0 4px 12px ${accent}0.03)` }}>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.55rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', margin: '0 0 0.4rem', fontWeight: 500 }}>{icon} {label}</p>
-                <p style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(1rem, 2vw, 1.25rem)', fontWeight: 700, color: textColor, margin: 0, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{val}</p>
-              </div>
-            ))}
+              { label: 'Rarity',     val: result.rarity,    icon: '◇', accent: 'rgba(245,158,11,', textColor: '#fbbf24' },
+            ].map(({ label, val, icon, accent, textColor }) => {
+              // 🎯 Rarity card ใช้สีและ glow ตาม Valorant rank
+              const isRarity = label === 'Rarity'
+              const rankColor = isRarity ? getRarityColor(displayRarity) : textColor
+              const rankGlow = isRarity ? getRarityGlow(displayRarity) : 'transparent'
+              const rankAccent = isRarity ? `${rankColor}28` : `${accent}0.18)`
+              const rankBorder = isRarity ? `1px solid ${rankColor}45` : `1px solid ${accent}0.18)`
+              const rankTopBorder = isRarity ? `2px solid ${rankColor}` : `2px solid ${accent}0.65)`
+              const rankClassName = isRarity
+                ? (displayRarity === 'RADIANT' ? 'rank-text-radiant' : displayRarity === 'IMMORTAL' ? 'rank-text-immortal' : '')
+                : ''
+
+              return (
+                <div key={label} style={{
+                  background: isRarity ? `${rankColor}08` : 'rgba(255,255,255,0.03)',
+                  border: rankBorder,
+                  borderTop: rankTopBorder,
+                  borderRadius: 12,
+                  padding: '0.95rem 0.4rem',
+                  textAlign: 'center',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  transition: 'border-color 0.3s, background 0.3s',
+                }}>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.55rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', margin: '0 0 0.4rem', fontWeight: 500 }}>{icon} {label}</p>
+
+                  {/* 🎯 Rarity แสดง Valorant rank badge */}
+                  {isRarity ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                      <p
+                        className={rankClassName}
+                        style={{
+                          fontFamily: "'Cinzel', serif",
+                          fontSize: 'clamp(0.7rem, 1.4vw, 0.9rem)',
+                          fontWeight: 900,
+                          color: rankColor,
+                          margin: 0,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em',
+                          lineHeight: 1.2,
+                          transition: 'color 0.25s',
+                        }}
+                      >
+                        {displayRarity}
+                      </p>
+                      {/* mini rank bar */}
+                      <div style={{ width: '60%', height: 2, borderRadius: 99, background: `${rankColor}50`, marginTop: 3, transition: 'background 0.3s' }} />
+                    </div>
+                  ) : (
+                    <p style={{
+                      fontFamily: 'monospace',
+                      fontSize: 'clamp(0.6rem, 1.2vw, 0.78rem)',
+                      fontWeight: 700,
+                      color: textColor,
+                      margin: 0,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.01em',
+                      lineHeight: 1.2,
+                      wordBreak: 'break-all',
+                    }}>
+                      {label === 'Aura' ? displayAura : label === 'Braincells' ? displayBrain : val}
+                    </p>
+                  )}
+                </div>
+              )
+            })}
           </div>
 
           <div className="r6" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'flex-start', width: '100%', marginBottom: 'clamp(0.8rem, 1.5vw, 1rem)' }}>
@@ -585,59 +797,66 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
           {reflexData.length > 0 && (
             <div className="r6" style={{ width: '100%', marginBottom: 'clamp(0.8rem, 1.5vw, 1.2rem)' }}>
               <div style={{
-                background: 'rgba(0,0,0,0.4)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                borderLeft: `3px solid ${roast.color}`,
-                borderRadius: 12,
-                padding: '0.9rem 1.1rem',
-                display: 'flex', flexDirection: 'column', gap: '0.5rem',
+                background: 'linear-gradient(135deg, rgba(249,115,22,0.06) 0%, rgba(245,158,11,0.02) 100%)',
+                border: '1px solid rgba(249,115,22,0.2)',
+                borderRadius: 16,
+                padding: '1rem 1.4rem',
+                display: 'flex', flexDirection: 'column', gap: '0.6rem',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.25em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', margin: 0 }}>⚡ REFLEX REPORT</p>
-                  <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.2)', margin: 0 }}>{reflexData.length} rounds</p>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ height: '1px', width: 16, background: 'rgba(249,115,22,0.5)' }} />
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.55rem', letterSpacing: '0.3em', color: '#ff9a52', textTransform: 'uppercase', margin: 0, fontWeight: 500 }}>Reflex Report</p>
+                  </div>
+                  <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', color: 'rgba(255,255,255,0.2)', margin: 0, letterSpacing: '0.1em' }}>{reflexData.length} rounds</p>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                  <p style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(1.1rem, 2.5vw, 1.5rem)', fontWeight: 900, color: roast.color, margin: 0, whiteSpace: 'nowrap' }}>{roast.title}</p>
-                  <div style={{ width: '1px', height: 28, background: 'rgba(255,255,255,0.1)', flexShrink: 0 }} />
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', margin: 0, fontStyle: 'italic', lineHeight: 1.3 }}>{roast.sub}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', minHeight: 32 }}>
+                  {roastLoading ? (
+                    <>
+                      <div style={{ width: 120, height: 18, borderRadius: 4, background: 'rgba(249,115,22,0.1)', animation: 'roast-pulse 1.2s ease-in-out infinite' }} />
+                      <div style={{ width: '1px', height: 22, background: 'rgba(249,115,22,0.2)', flexShrink: 0 }} />
+                      <div style={{ flex: 1, height: 12, borderRadius: 4, background: 'rgba(255,255,255,0.05)', animation: 'roast-pulse 1.2s ease-in-out infinite' }} />
+                    </>
+                  ) : (
+                    <>
+                      <p style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(1rem, 2.2vw, 1.3rem)', fontWeight: 700, color: roast.color, margin: 0, whiteSpace: 'nowrap', letterSpacing: '0.02em' }}>{roast.title}</p>
+                      <div style={{ width: '1px', height: 22, background: 'rgba(249,115,22,0.2)', flexShrink: 0 }} />
+                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', margin: 0, fontStyle: 'italic', lineHeight: 1.3, fontWeight: 300 }}>{roast.sub}</p>
+                    </>
+                  )}
                 </div>
 
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                   {avgReflex !== null && (
-                    <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '3px 10px', color: 'rgba(255,255,255,0.5)' }}>
-                      AVG {avgReflex}ms
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.62rem', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.03)', padding: '3px 12px', borderRadius: 99, letterSpacing: '0.02em' }}>
+                      avg {avgReflex}ms
                     </span>
                   )}
                   {bestReflex !== null && (
-                    <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', background: `rgba(0,255,136,0.05)`, border: '1px solid rgba(0,255,136,0.2)', borderRadius: 6, padding: '3px 10px', color: '#00ff88' }}>
-                      BEST {bestReflex}ms
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.62rem', color: 'rgba(249,115,22,0.8)', border: '1px solid rgba(249,115,22,0.2)', background: 'rgba(249,115,22,0.04)', padding: '3px 12px', borderRadius: 99 }}>
+                      best {bestReflex}ms
                     </span>
                   )}
-                  <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', background: 'rgba(255,68,68,0.05)', border: '1px solid rgba(255,68,68,0.2)', borderRadius: 6, padding: '3px 10px', color: '#ff6666' }}>
-                    MISS {missCount}x
-                  </span>
-                  <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', background: 'rgba(0,255,136,0.05)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: 6, padding: '3px 10px', color: '#00ff88' }}>
-                    HIT {perfectRounds.length}x
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.62rem', color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.02)', padding: '3px 12px', borderRadius: 99 }}>
+                    {perfectRounds.length} hit · {missCount} miss
                   </span>
                 </div>
 
                 {/* mini bar chart */}
-                {reflexData.length > 0 && (
-                  <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: 28, marginTop: 2 }}>
-                    {reflexData.map((r, i) => {
-                      const maxMs = Math.max(...reflexData.filter(x => x.ms).map(x => x.ms), 500)
-                      const h = r.ms ? Math.max(3, Math.round((r.ms / maxMs) * 24)) : 3
-                      const color = r.verdict === 'perfect' ? '#00ff88' : r.verdict === 'early' ? '#ffaa00' : '#ff4444'
-                      return (
-                        <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                          <div style={{ width: 14, height: h, borderRadius: 2, background: color, opacity: 0.8 }} />
-                          <span style={{ fontFamily: 'monospace', fontSize: '0.45rem', color: 'rgba(255,255,255,0.2)' }}>R{r.round}</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
+                <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end', height: 24 }}>
+                  {reflexData.map((r, i) => {
+                    const maxMs = Math.max(...reflexData.filter(x => x.ms).map(x => x.ms), 500)
+                    const h = r.ms ? Math.max(3, Math.round((r.ms / maxMs) * 20)) : 3
+                    const color = r.verdict === 'perfect' ? 'rgba(249,115,22,0.7)' : r.verdict === 'early' ? 'rgba(245,158,11,0.5)' : 'rgba(255,255,255,0.15)'
+                    return (
+                      <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                        <div style={{ width: 12, height: h, borderRadius: 2, background: color }} />
+                        <span style={{ fontFamily: 'monospace', fontSize: '0.42rem', color: 'rgba(255,255,255,0.18)', letterSpacing: '0.05em' }}>R{r.round}</span>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             </div>
           )}
@@ -670,27 +889,24 @@ function ResultPage({ result, onScanAgain, onBackHome }) {
 
     const processUrl = (url) => {
       if (!url) return '';
-      if (url.startsWith('data:')) return url; 
+      if (url.startsWith('data:')) return url;
       const separator = url.includes('?') ? '&' : '?';
       return `${url}${separator}t=${Date.now()}`;
     }
 
     const scanImg = processUrl(result.scanImageUrl)
-    
-    // 🌟 ดึงรูปที่แอบถ่าย 3 ช็อตมาใช้งาน
+
     const fallbackPhoto = result.scanImageUrl || '';
-    const rawPhotos = (result.jumpscarePhotos && result.jumpscarePhotos.length === 3) 
+    const rawPhotos = (result.jumpscarePhotos && result.jumpscarePhotos.length === 3)
       ? [
-          result.jumpscarePhotos[0] || fallbackPhoto, 
-          result.jumpscarePhotos[1] || fallbackPhoto, 
+          result.jumpscarePhotos[0] || fallbackPhoto,
+          result.jumpscarePhotos[1] || fallbackPhoto,
           result.jumpscarePhotos[2] || fallbackPhoto
         ]
       : [fallbackPhoto, fallbackPhoto, fallbackPhoto];
-      
+
     const photos = rawPhotos.map(p => processUrl(p));
 
-    // 🌟 เช็กว่าหลังบ้านส่ง array "matched_meme_urls" (มีตัว s) มา 3 รูปหรือไม่
-    // ถ้าไม่มี ก็จะเอารูปเดียวที่เคยมีมาใช้ซ้ำ 3 ช่องเหมือนเดิม กันแอปพัง
     const fallbackMeme = result.matched_meme_url || '';
     const rawMemes = (result.matched_meme_urls && result.matched_meme_urls.length === 3)
       ? result.matched_meme_urls
@@ -701,9 +917,9 @@ function ResultPage({ result, onScanAgain, onBackHome }) {
     setProcessedUrls({ scanImg, photos, memes })
 
     const timings = [
-      setTimeout(() => setPhase(2), 4000),   // เดิม 3000
-      setTimeout(() => setPhase(3), 9000),  // เดิม 6000
-      setTimeout(() => setPhase(4), 12000),  // เดิม 9000
+      setTimeout(() => setPhase(2), 4000),
+      setTimeout(() => setPhase(3), 9000),
+      setTimeout(() => setPhase(4), 12000),
     ]
     return () => timings.forEach(clearTimeout)
   }, [result])
@@ -713,9 +929,7 @@ function ResultPage({ result, onScanAgain, onBackHome }) {
   const phaseMap = {
     1: <PhaseAnnounce creature={result.creature} imageUrl={processedUrls.scanImg} />,
     2: <PhaseFace imageUrl={processedUrls.scanImg} />,
-    // หน้าเปิดตัวมีมตอนแรก (ดึงมีมตัวสุดท้าย/ช็อต Jumpscare มาโชว์เพราะมันพีคสุด)
-    3: <PhaseMeme memeUrl={processedUrls.memes[2]} creature={result.creature} />, 
-    // ส่ง Array ของรูปมีมไปที่ Phase 4
+    3: <PhaseMeme memeUrl={processedUrls.memes[2]} creature={result.creature} />,
     4: <PhaseResult result={result} userPhotos={processedUrls.photos} matchedMemeUrls={processedUrls.memes} reflexData={result.reflexData || []} onScanAgain={onScanAgain} onBackHome={onBackHome} />,
   }
 
