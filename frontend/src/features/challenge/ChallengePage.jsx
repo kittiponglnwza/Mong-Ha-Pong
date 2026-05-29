@@ -9,9 +9,9 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
   const [clip, setClip] = useState(null)
   const [resultData, setResultData] = useState(null)
   const [isJumpscare, setIsJumpscare] = useState(false)
-  const [reflexMs, setReflexMs] = useState(null)          // ⏱ reflex ของ clip นี้
-  const [allReflexTimes, setAllReflexTimes] = useState([]) // 📊 ประวัติทุก clip
-  const [resultImg, setResultImg] = useState(null)         // 🖼 รูปจาก folder
+  const [reflexMs, setReflexMs] = useState(null)
+  const [allReflexTimes, setAllReflexTimes] = useState([])
+  const [resultImg, setResultImg] = useState(null)
 
   const videoRef = useRef(null)
   const webcamRef = useRef(null)
@@ -20,7 +20,7 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
   const roundRef = useRef(0)
   const capturedRef = useRef(false)
   const playStartTimeRef = useRef(null)
-  const peekStartTimeRef = useRef(null) // ⏱ จับเวลาตอน peek โผล่จริงๆ
+  const peekStartTimeRef = useRef(null)
 
   const frameBufferRef = useRef([])
   const captureLoopRef = useRef(null)
@@ -36,8 +36,8 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
 
   // --- โหลดเสียง ---
   useEffect(() => {
-    hitSoundRef.current = new Audio('/sounds/hit.mp3')     // ยิงโดน
-    missSoundRef.current = new Audio('/sounds/shoot.mp3')  // ยิงพลาด / ช้า
+    hitSoundRef.current = new Audio('/sounds/hit.mp3')
+    missSoundRef.current = new Audio('/sounds/shoot.mp3')
     hitSoundRef.current.volume = 0.8
     missSoundRef.current.volume = 0.8
   }, [])
@@ -150,7 +150,7 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
   useEffect(() => {
     if (phase === 'playing') {
       videoRef.current?.play()
-      playStartTimeRef.current = Date.now() // ⏱ เริ่มจับเวลา
+      playStartTimeRef.current = Date.now()
       setTimeout(() => {
         if (!photosRef.current.beginImg) {
           photosRef.current.beginImg = getLatestFrame()
@@ -165,7 +165,6 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
     const t = videoRef.current?.currentTime ?? 0
     const peek = peekTimeRef.current ?? 0
 
-    // ⏱ บันทึกเวลาจริงตอน peek โผล่ครั้งแรก
     if (t >= peek && peekStartTimeRef.current === null) {
       peekStartTimeRef.current = Date.now()
     }
@@ -196,13 +195,15 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
     }
   }
 
+  // ✅ handleClick — แก้แล้ว: เพิ่ม late window หลัง peek
   const handleClick = () => {
     if (phase !== 'playing' || isJumpscare || hasClickedRef.current) return
     hasClickedRef.current = true
     videoRef.current?.pause()
     photosRef.current.tooLateImg = getLatestFrame()
 
-    const peekStarted = peekStartTimeRef.current !== null // peek โผล่แล้วหรือยัง
+    const peekStarted = peekStartTimeRef.current !== null
+    let verdict = 'early' // default
 
     if (!peekStarted) {
       // กดก่อน peek โผล่เลย — too early
@@ -214,13 +215,14 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
     } else {
       // กดหลัง peek โผล่ — คำนวณ reflex จากตอน peek จริงๆ
       const reflexAfterPeek = Date.now() - peekStartTimeRef.current
-      playSound('hit')
+      verdict = reflexAfterPeek <= 100 ? 'perfect' : 'late' // ✅ เช็ค window 100ms
+      playSound(verdict === 'perfect' ? 'hit' : 'miss')
       setReflexMs(reflexAfterPeek)
-      setAllReflexTimes(prev => [...prev, { round: roundRef.current, ms: reflexAfterPeek, verdict: 'perfect' }])
-      setResultData({ verdict: 'perfect', ms: reflexAfterPeek })
+      setAllReflexTimes(prev => [...prev, { round: roundRef.current, ms: reflexAfterPeek, verdict }])
+      setResultData({ verdict, ms: reflexAfterPeek })
     }
 
-    fetchResultImg(peekStarted ? 'perfect' : 'early')
+    fetchResultImg(verdict) // ✅ ใช้ verdict เดียวกัน ไม่ต้องเช็ค peekStarted แยก
     setPhase('result')
   }
 
@@ -240,6 +242,64 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
 
   const currentRound = roundRef.current
   const totalRounds = JUMPSCARE_ROUND
+
+  // 💬 คำด่า/อวย ตาม verdict + rating
+  const getRoast = (verdict, ms) => {
+    if (verdict === 'early') return [
+      'มึงยิงก่อนศัตรูโผล่อีก 👽',
+      'crosshair มึงกลัวผีหรอ ยิงมั่วชิบหาย',
+      'สมองยังไม่สั่ง แต่นิ้วลั่นไปละ 💀',
+      'นี่เล่น Valorant หรือเล่น Whack-a-Mole',
+      'trigger discipline ติดลบ',
+      'ศัตรูยังไม่ peek แต่มึง panic ไปก่อนละ',
+      'เสียงปืนดัง แต่ rank ไม่ขยับเลยนะ',
+      'คนดูคิดว่าเน็ตกระตุก ไม่ใช่มึงกาก'
+    ][Math.floor(Math.random() * 8)]
+    if (verdict === 'late') return [
+      'reaction time แบบนี้ไปปลูกผักเถอะ 🥬',
+      'ศัตรูฆ่ามึงเสร็จ เดินกลับบ้านยังยิงไม่ทัน',
+      'reflex มึงโหลดช้ากว่าเกมอีก',
+      'ยายกด ATM ยังไวกว่า',
+      'กูเห็นอนาคตมึงละ bottom frag แน่นอน',
+      'มึงไม่ได้ช้า… มึง AFK ทางสมอง',
+      'กดช้าขนาดนี้ใช้ keyboard ถ่านหรอ',
+      'ศัตรู reload เสร็จสองแม็ก มึงยังไม่ยิง'
+    ][Math.floor(Math.random() * 8)]
+    if (ms < 180) return [
+      'ไวชิบหาย 🔥 pro player ยังสะดุ้ง',
+      'reaction แบบนี้ smurf แน่นอน',
+      'aim เข้าเส้นประสาทเลยว่ะ',
+      'มึงยิงเร็วจน anti-cheat จะเรียกคุย',
+      'crosshair ดูดหัวเกินมนุษย์'
+    ][Math.floor(Math.random() * 5)]
+    if (ms < 300) return [
+      'โอเคเลย มีของว่ะ',
+      'เล่นดีจน teammate เริ่มฝากความหวัง',
+      'ไวพอ carry ได้ ถ้าไม่โยนเอง',
+      'aim ดี แต่ ego อย่าเยอะ',
+      'เริ่มเหมือนคนมีแรงค์ละ'
+    ][Math.floor(Math.random() * 5)]
+    if (ms < 450) return [
+      'average ranked demon 🐀',
+      'ไม่เร็วไม่ช้า แต่ดูไม่มีอนาคต',
+      'เล่นได้ แต่ยังไม่ถึงกับคนดูว้าว',
+      'สปีดประมาณคนติด Gold',
+      'อย่างน้อยก็ยังเร็วกว่าคนใช้ touchpad'
+    ][Math.floor(Math.random() * 5)]
+    return [
+      'กว่าจะยิงได้ ศัตรูมีลูกมีเมียละ 💀',
+      'reaction time หรือรอ Windows update อยู่',
+      'มึงคือเหตุผลที่ทีม mute voice',
+      'ถ้าช้ากว่านี้คือ replay แล้วนะ',
+      'กดช้าจนปืนคิดว่ามึงไม่รักมัน',
+      'crosshair อยู่หัว แต่สมองอยู่ไหน',
+      'ยิงแบบนี้ bot ยังขำ',
+      'ถ้า aim แย่เป็นอาชญากรรม มึงติดคุกตลอดชีวิต'
+    ][Math.floor(Math.random() * 8)]
+  }
+
+  const [showStat, setShowStat] = useState(true)
+  const roastText = resultData ? getRoast(resultData.verdict, resultData.ms) : ''
 
   return (
     <div style={{...styles.container, cursor: phase === 'playing' ? 'none' : 'default'}} onClick={handleClick}>
@@ -299,91 +359,121 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
 
       {/* 📊 RESULT */}
       {phase === 'result' && resultData && (
-        <div style={styles.resultOverlay}>
+        <div style={styles.resultOverlay} onClick={e => e.stopPropagation()}>
           <div style={styles.resultCard}>
-            {/* ซ้าย: รูปจาก folder */}
-            <div style={styles.photoCol}>
-              {resultImg ? (
-                <img
-                  src={resultImg}
-                  alt="result"
-                  style={styles.reactionPhoto}
-                />
+
+            {resultImg && (
+              <img
+                src={resultImg}
+                alt="result"
+                style={styles.reactionPhoto}
+              />
+            )}
+
+            <p style={{
+              ...styles.verdict,
+              color: resultData.verdict === 'perfect' ? '#00ff88'
+                   : resultData.verdict === 'early'   ? '#ffaa00'
+                   : '#ff4444'
+            }}>
+              {resultData.verdict === 'perfect' ? ' PERFECT'
+             : resultData.verdict === 'early'   ? ' TOO EARLY'
+             : ' TOO LATE'}
+            </p>
+
+            <p style={styles.roastText}>"{roastText}"</p>
+
+            {/* reflex time — แสดงเฉพาะตอน perfect */}
+            {resultData.verdict === 'perfect' && resultData.ms != null && (
+              <div style={styles.reflexRow}>
+                <span style={styles.reflexMs}>{resultData.ms}</span>
+                <span style={styles.reflexUnit}>ms</span>
+                <span style={{
+                  ...styles.reflexBadge,
+                  background: resultData.ms < 200 ? 'rgba(255,68,68,0.15)'
+                            : resultData.ms < 350 ? 'rgba(255,153,0,0.15)'
+                            : 'rgba(0,255,136,0.12)',
+                  color: resultData.ms < 200 ? '#ff4444'
+                       : resultData.ms < 350 ? '#ff9900'
+                       : '#00ff88',
+                }}>
+                  {getReflexRating(resultData.ms).label}
+                </span>
+              </div>
+            )}
+
+            {/* reflex time — แสดงตอน late ด้วย */}
+            {resultData.verdict === 'late' && resultData.ms != null && (
+              <div style={styles.reflexRow}>
+                <span style={styles.reflexMs}>{resultData.ms}</span>
+                <span style={styles.reflexUnit}>ms</span>
+                <span style={{ ...styles.reflexBadge, background: 'rgba(255,68,68,0.15)', color: '#ff4444' }}>
+                  TOO SLOW
+                </span>
+              </div>
+            )}
+
+            <div style={styles.btnRow}>
+              {roundRef.current < JUMPSCARE_ROUND ? (
+                <button style={styles.btn} onClick={e => { e.stopPropagation(); loadClip() }}>
+                  Next Round 
+                </button>
               ) : (
-                <div style={styles.photoPlaceholder}>🖼️</div>
+                <button style={styles.btn} onClick={e => { e.stopPropagation(); finishGame() }}>
+                  View Results 
+                </button>
               )}
-              <p style={styles.photoCaption}>
-                {resultData.verdict === 'perfect' ? '🎯 nice shot'
-               : resultData.verdict === 'early'   ? '⚡ too early'
-               : '💀 too slow'}
-              </p>
             </div>
 
-            {/* ขวา: ผลลัพธ์ */}
-            <div style={styles.resultCol}>
-              <p style={{
-                ...styles.verdict,
-                color: resultData.verdict === 'perfect' ? '#00ff88'
-                     : resultData.verdict === 'early'   ? '#ffaa00'
-                     : '#ff4444'
-              }}>
-                {resultData.verdict === 'perfect' ? '🎯 PERFECT'
-               : resultData.verdict === 'early'   ? '⚡ TOO EARLY'
-               : '💀 TOO LATE'}
-              </p>
-
-              {resultData.ms !== undefined && (
-                <>
-                  <div style={styles.reflexBox}>
-                    <span style={styles.reflexLabel}>REFLEX TIME</span>
-                    <span style={styles.reflexMs}>{resultData.ms}<span style={styles.reflexUnit}>ms</span></span>
-                    <span style={{
-                      ...styles.reflexRating,
-                      color: getReflexRating(resultData.ms).color
-                    }}>
-                      {getReflexRating(resultData.ms).label}
+            {/* STAT panel */}
+            {showStat && (
+              <div style={styles.statPanel}>
+                <div style={styles.statGrid}>
+                  <div style={styles.statBox}>
+                    <span style={styles.statLabel}>ROUND</span>
+                    <span style={styles.statVal}>{roundRef.current}/{totalRounds}</span>
+                  </div>
+                  <div style={styles.statBox}>
+                    <span style={styles.statLabel}>AVG REFLEX</span>
+                    <span style={styles.statVal}>{avgReflex !== null ? `${avgReflex}ms` : '—'}</span>
+                  </div>
+                  <div style={styles.statBox}>
+                    <span style={styles.statLabel}>PERFECT</span>
+                    <span style={{...styles.statVal, color: '#00ff88'}}>
+                      {allReflexTimes.filter(r => r.verdict === 'perfect').length}
                     </span>
                   </div>
+                  <div style={styles.statBox}>
+                    <span style={styles.statLabel}>MISS</span>
+                    <span style={{...styles.statVal, color: '#ff4444'}}>
+                      {allReflexTimes.filter(r => r.verdict !== 'perfect').length}
+                    </span>
+                  </div>
+                </div>
 
-                  {/* มินิกราฟแสดงประวัติ */}
-                  {allReflexTimes.length > 1 && (
-                    <div style={styles.historyWrap}>
-                      <p style={styles.historyTitle}>HISTORY</p>
-                      <div style={styles.historyBars}>
-                        {allReflexTimes.map((r, i) => {
-                          const maxMs = Math.max(...allReflexTimes.map(x => x.ms), 800)
-                          const h = Math.max(4, Math.round((r.ms / maxMs) * 60))
-                          return (
-                            <div key={i} style={styles.barWrap}>
-                              <div style={{
-                                ...styles.bar,
-                                height: h,
-                                background: r.verdict === 'perfect' ? '#00ff88'
-                                        : r.verdict === 'early'   ? '#ffaa00'
-                                        : '#ff4444'
-                              }} />
-                              <span style={styles.barLabel}>R{r.round}</span>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-
-              <div style={styles.btnRow}>
-                {roundRef.current < JUMPSCARE_ROUND ? (
-                  <button style={styles.btn} onClick={e => { e.stopPropagation(); loadClip() }}>
-                    Next Round →
-                  </button>
-                ) : (
-                  <button style={styles.btn} onClick={e => { e.stopPropagation(); finishGame() }}>
-                    View Results →
-                  </button>
+                {allReflexTimes.length > 0 && (
+                  <div style={styles.historyBars}>
+                    {allReflexTimes.map((r, i) => {
+                      const maxMs = Math.max(...allReflexTimes.filter(x=>x.ms).map(x => x.ms), 800)
+                      const h = r.ms ? Math.max(4, Math.round((r.ms / maxMs) * 56)) : 4
+                      return (
+                        <div key={i} style={styles.barWrap}>
+                          <span style={{...styles.barMs, color: r.verdict==='perfect'?'#00ff88':r.verdict==='early'?'#ffaa00':'#ff4444'}}>
+                            {r.ms ? `${r.ms}` : '—'}
+                          </span>
+                          <div style={{
+                            ...styles.bar, height: h,
+                            background: r.verdict === 'perfect' ? '#00ff88'
+                                      : r.verdict === 'early'   ? '#ffaa00' : '#ff4444'
+                          }} />
+                          <span style={styles.barLabel}>R{r.round}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
                 )}
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}
@@ -458,52 +548,68 @@ const styles = {
 
   // Result
   resultOverlay: {
-    position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.85)',
+    position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.82)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    zIndex: 20, backdropFilter: 'blur(4px)'
+    zIndex: 20,
   },
   resultCard: {
-    display: 'flex', gap: 32, alignItems: 'flex-start',
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: 16, padding: 32,
-    maxWidth: 720, width: '90%'
+    display: 'flex', flexDirection: 'column', alignItems: 'center',
+    gap: 16, maxWidth: 480, width: '90%', textAlign: 'center',
   },
-  photoCol: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flexShrink: 0 },
   reactionPhoto: {
-    width: 160, height: 120, objectFit: 'cover',
-    borderRadius: 10, border: '2px solid rgba(255,255,255,0.2)'
+    width: 180, height: 180, objectFit: 'cover',
+    borderRadius: 16,
+    mixBlendMode: 'luminosity',
+    opacity: 0.95,
   },
-  photoPlaceholder: {
-    width: 160, height: 120, background: '#111', borderRadius: 10,
-    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40
+  verdict: {
+    fontSize: 48, fontWeight: 'bold', margin: 0,
+    fontFamily: 'monospace', letterSpacing: 2,
   },
-  photoCaption: { color: '#666', fontSize: 12, fontFamily: 'monospace', margin: 0 },
-
-  resultCol: { flex: 1, display: 'flex', flexDirection: 'column', gap: 16 },
-  verdict: { fontSize: 42, fontWeight: 'bold', margin: 0, fontFamily: 'monospace' },
-
-  reflexBox: {
-    background: 'rgba(0,255,136,0.06)', border: '1px solid rgba(0,255,136,0.2)',
-    borderRadius: 10, padding: '12px 20px',
-    display: 'flex', flexDirection: 'column', gap: 4
+  roastText: {
+    fontSize: 18, color: 'rgba(255,255,255,0.65)',
+    fontStyle: 'italic', margin: 0,
+    fontFamily: 'sans-serif',
   },
-  reflexLabel: { fontSize: 11, color: '#888', letterSpacing: 2, fontFamily: 'monospace' },
-  reflexMs: { fontSize: 44, color: '#fff', fontWeight: 'bold', fontFamily: 'monospace', lineHeight: 1 },
-  reflexUnit: { fontSize: 18, color: '#888', marginLeft: 4 },
-  reflexRating: { fontSize: 16, fontWeight: 'bold', fontFamily: 'monospace' },
-
-  historyWrap: { display: 'flex', flexDirection: 'column', gap: 8 },
-  historyTitle: { fontSize: 11, color: '#888', letterSpacing: 2, fontFamily: 'monospace', margin: 0 },
-  historyBars: { display: 'flex', gap: 8, alignItems: 'flex-end', height: 68 },
-  barWrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 },
-  bar: { width: 18, borderRadius: 3, transition: 'height 0.3s ease' },
-  barLabel: { fontSize: 10, color: '#555', fontFamily: 'monospace' },
-
-  btnRow: { display: 'flex', gap: 12, marginTop: 8 },
+  reflexRow: {
+    display: 'flex', alignItems: 'baseline', gap: 8,
+  },
+  reflexMs: {
+    fontSize: 52, color: '#fff', fontWeight: 'bold',
+    fontFamily: 'monospace', lineHeight: 1,
+  },
+  reflexUnit: { fontSize: 20, color: '#888', fontFamily: 'monospace' },
+  reflexBadge: {
+    fontSize: 13, fontWeight: 'bold', fontFamily: 'monospace',
+    padding: '4px 12px', borderRadius: 6, letterSpacing: 1,
+  },
+  btnRow: { display: 'flex', gap: 10, marginTop: 4 },
+  btnStat: {
+    padding: '10px 22px', background: 'rgba(255,255,255,0.08)',
+    border: '1px solid rgba(255,255,255,0.2)', borderRadius: 8,
+    fontSize: 14, cursor: 'pointer', color: '#fff', fontFamily: 'monospace',
+  },
   btn: {
-    padding: '12px 28px', background: '#00ff88', border: 'none',
-    borderRadius: 8, fontSize: 16, cursor: 'pointer', fontWeight: 'bold',
-    fontFamily: 'monospace', color: '#000', letterSpacing: 1
-  }
+    padding: '10px 26px', background: '#00ff88', border: 'none',
+    borderRadius: 8, fontSize: 15, cursor: 'pointer', fontWeight: 'bold',
+    fontFamily: 'monospace', color: '#000', letterSpacing: 1,
+  },
+  statPanel: {
+    width: '100%', background: 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: 12, padding: '16px 20px',
+    display: 'flex', flexDirection: 'column', gap: 16,
+  },
+  statGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 },
+  statBox: {
+    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+    background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '10px 4px',
+  },
+  statLabel: { fontSize: 9, color: '#666', letterSpacing: 2, fontFamily: 'monospace' },
+  statVal: { fontSize: 20, color: '#fff', fontWeight: 'bold', fontFamily: 'monospace' },
+  historyBars: { display: 'flex', gap: 10, alignItems: 'flex-end', justifyContent: 'center', height: 80 },
+  barWrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 },
+  bar: { width: 20, borderRadius: 3 },
+  barMs: { fontSize: 9, fontFamily: 'monospace' },
+  barLabel: { fontSize: 9, color: '#555', fontFamily: 'monospace' },
 }
