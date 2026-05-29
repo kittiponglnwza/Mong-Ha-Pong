@@ -516,7 +516,7 @@ export default function HomePage({ onPlay, onAbout }) {
                 textTransform: 'uppercase',
               }}
             >
-              Press Enter to continue
+              IF YOU’RE SURE, I’M FINISHING YOU.
             </span>
           </div>
         </div>

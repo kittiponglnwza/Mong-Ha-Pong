@@ -116,7 +116,7 @@ function PhaseAnnounce({ creature, imageUrl }) {
         <p className="float-up-1" style={{
           fontFamily: "'Cinzel', serif", fontSize: "0.65rem", letterSpacing: "0.55em",
           color: "rgba(251,191,36,0.65)", textTransform: "uppercase", marginBottom: '1.2rem',
-        }}>นี่คือ</p>
+        }}>This is</p>
  
         {/* Heraldic ornament top */}
         <div className="ornament-line float-up-1" style={{

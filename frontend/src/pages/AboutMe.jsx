@@ -166,7 +166,7 @@ export default function ValorantAgentSelect({ onBack, onPlay }) {
 
       <div className="absolute inset-0 z-30 p-6 lg:p-10 flex justify-between items-stretch pointer-events-none">
         <div
-          className="w-[360px] flex flex-col justify-start pointer-events-auto transition-transform duration-100 ease-out"
+          className="w-[360px] flex flex-col justify-start pointer-events-auto transition-transform duration-100 ease-out pt-12 lg:pt-16"
           style={{
             transform: `translate(${mousePos.x * -0.2}px, ${mousePos.y * -0.2}px)`
           }}
@@ -228,21 +228,6 @@ export default function ValorantAgentSelect({ onBack, onPlay }) {
             </div>
           </div>
 
-          <div className="tactical-box p-4 rounded-sm border-l-4 border-l-green-500/80">
-            <div className="text-[11px] tracking-[0.22em] text-green-300 font-bold uppercase mb-2">
-              SYSTEM STATUS
-            </div>
-            <div className="flex items-center gap-2 text-green-300 text-xs font-semibold tracking-[0.22em]">
-              <span
-                className="w-2.5 h-2.5 rounded-full bg-green-400"
-                style={{ animation: 'pulseGreen 1.2s ease-in-out infinite' }}
-              />
-              DARK SYSTEMS  ERROR 404
-            </div>
-            <div className="text-slate-300 text-xs mt-2">
-              “Don’t let me wake up—I’ll kill everything clean.”
-            </div>
-          </div>
         </div>
 
         <div className="w-[420px] flex flex-col justify-start pointer-events-auto transition-transform duration-100 ease-out pt-16 lg:pt-24"
@@ -291,6 +276,22 @@ export default function ValorantAgentSelect({ onBack, onPlay }) {
                 {skillData[activePanel].email}
               </a>
             )}
+          </div>
+
+          <div className="tactical-box p-4 rounded-sm mt-4 border-l-4 border-l-green-500/80">
+            <div className="text-[11px] tracking-[0.22em] text-green-300 font-bold uppercase mb-2">
+              SYSTEM STATUS
+            </div>
+            <div className="flex items-center gap-2 text-green-300 text-xs font-semibold tracking-[0.22em]">
+              <span
+                className="w-2.5 h-2.5 rounded-full bg-green-400"
+                style={{ animation: 'pulseGreen 1.2s ease-in-out infinite' }}
+              />
+              DARK SYSTEMS - ERROR 404
+            </div>
+            <div className="text-slate-300 text-xs mt-2">
+              “Don’t let me wake up—I’ll kill everything clean.”
+            </div>
           </div>
         </div>
 
