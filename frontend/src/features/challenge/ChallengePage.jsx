@@ -246,23 +246,22 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
   // 💬 คำด่า/อวย ตาม verdict + rating
   const getRoast = (verdict, ms) => {
     if (verdict === 'early') return [
-      'มึงยิงก่อนศัตรูโผล่อีก 👽',
+      'คนอยู่ดีไหนวะกูยังไม่เห็นเลย',
       'crosshair มึงกลัวผีหรอ ยิงมั่วชิบหาย',
-      'สมองยังไม่สั่ง แต่นิ้วลั่นไปละ 💀',
-      'นี่เล่น Valorant หรือเล่น Whack-a-Mole',
-      'trigger discipline ติดลบ',
+      'สมองยังไม่สั่ง แต่นิ้วลั่นไปละ ',
+      'ไฟดูดนิ้วหรือไงวะ ยิงก่อน peek อีกแล้ว',
       'ศัตรูยังไม่ peek แต่มึง panic ไปก่อนละ',
       'เสียงปืนดัง แต่ rank ไม่ขยับเลยนะ',
       'คนดูคิดว่าเน็ตกระตุก ไม่ใช่มึงกาก'
     ][Math.floor(Math.random() * 8)]
     if (verdict === 'late') return [
-      'reaction time แบบนี้ไปปลูกผักเถอะ 🥬',
+      'reaction time แบบนี้ไปมายคราฟเหอะ',
       'ศัตรูฆ่ามึงเสร็จ เดินกลับบ้านยังยิงไม่ทัน',
       'reflex มึงโหลดช้ากว่าเกมอีก',
       'ยายกด ATM ยังไวกว่า',
       'กูเห็นอนาคตมึงละ bottom frag แน่นอน',
       'มึงไม่ได้ช้า… มึง AFK ทางสมอง',
-      'กดช้าขนาดนี้ใช้ keyboard ถ่านหรอ',
+      'มันจะเดินมาหอมแก้มมึงแล้วเนี่ยะ',
       'ศัตรู reload เสร็จสองแม็ก มึงยังไม่ยิง'
     ][Math.floor(Math.random() * 8)]
     if (ms < 180) return [
@@ -273,9 +272,7 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
       'crosshair ดูดหัวเกินมนุษย์'
     ][Math.floor(Math.random() * 5)]
     if (ms < 300) return [
-      'โอเคเลย มีของว่ะ',
-      'เล่นดีจน teammate เริ่มฝากความหวัง',
-      'ไวพอ carry ได้ ถ้าไม่โยนเอง',
+      'เก่งแค่ในเกมแหละ ตัวจริงนั่งอ้วนหน้าคอม',
       'aim ดี แต่ ego อย่าเยอะ',
       'เริ่มเหมือนคนมีแรงค์ละ'
     ][Math.floor(Math.random() * 5)]
@@ -283,7 +280,7 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
       'average ranked demon 🐀',
       'ไม่เร็วไม่ช้า แต่ดูไม่มีอนาคต',
       'เล่นได้ แต่ยังไม่ถึงกับคนดูว้าว',
-      'สปีดประมาณคนติด Gold',
+      'สปีดประมาณคน Rank Gold',
       'อย่างน้อยก็ยังเร็วกว่าคนใช้ touchpad'
     ][Math.floor(Math.random() * 5)]
     return [
@@ -376,9 +373,9 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
                    : resultData.verdict === 'early'   ? '#ffaa00'
                    : '#ff4444'
             }}>
-              {resultData.verdict === 'perfect' ? '✓ PERFECT'
-             : resultData.verdict === 'early'   ? '✗ TOO EARLY'
-             : '✗ TOO LATE'}
+              {resultData.verdict === 'perfect' ? ' PERFECT'
+             : resultData.verdict === 'early'   ? ' TOO EARLY'
+             : ' TOO LATE'}
             </p>
 
             <p style={styles.roastText}>"{roastText}"</p>
@@ -404,23 +401,25 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
 
             {/* reflex time — แสดงตอน late ด้วย */}
             {resultData.verdict === 'late' && resultData.ms != null && (
-              <div style={styles.reflexRow}>
-                <span style={styles.reflexMs}>{resultData.ms}</span>
-                <span style={styles.reflexUnit}>ms</span>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
                 <span style={{ ...styles.reflexBadge, background: 'rgba(255,68,68,0.15)', color: '#ff4444' }}>
                   TOO SLOW
                 </span>
+                <div style={styles.reflexRow}>
+                  <span style={styles.reflexMs}>{resultData.ms}</span>
+                  <span style={styles.reflexUnit}>ms</span>
+                </div>
               </div>
             )}
 
             <div style={styles.btnRow}>
               {roundRef.current < JUMPSCARE_ROUND ? (
                 <button style={styles.btn} onClick={e => { e.stopPropagation(); loadClip() }}>
-                  Next Round →
+                  Next Round 
                 </button>
               ) : (
                 <button style={styles.btn} onClick={e => { e.stopPropagation(); finishGame() }}>
-                  View Results →
+                  View Results 
                 </button>
               )}
             </div>
