@@ -265,13 +265,36 @@ function PhaseMeme({ memeUrl, creature }) {
 /* ─────────────────────────────────────────────────────────────
     Phase 4 – The Final Result & Photo Strip
 ───────────────────────────────────────────────────────────────*/
-function PhaseResult({ result, userPhotos, matchedMemeUrls, onScanAgain, onBackHome }) {
+function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onScanAgain, onBackHome }) {
   const animalProfile = getAnimalProfile(result)
   const score = result?.animal_score ?? result?.npc_score ?? 0
   const barRef = useRef(null)
   const photoCardRef = useRef(null) 
   const downloadCardRef = useRef(null) 
   const [isSaving, setIsSaving] = useState(false)
+
+  // 🎯 Reflex stats
+  const perfectRounds = reflexData.filter(r => r.verdict === 'perfect')
+  const avgReflex = perfectRounds.length > 0
+    ? Math.round(perfectRounds.reduce((a, b) => a + b.ms, 0) / perfectRounds.length)
+    : null
+  const bestReflex = perfectRounds.length > 0
+    ? Math.min(...perfectRounds.map(r => r.ms))
+    : null
+  const missCount = reflexData.filter(r => r.verdict !== 'perfect').length
+
+  const getReflexRoast = () => {
+    if (reflexData.length === 0) return { title: 'ไม่มีข้อมูล', sub: 'มึงกดอะไรเลย', color: '#666' }
+    if (missCount >= 4) return { title: 'ไม้เท้ายายยิงปืน', sub: `พลาด ${missCount} รอบ reaction ช้ากว่าคนหมดสติ`, color: '#ff4444' }
+    if (missCount >= 2) return { title: 'อย่าเล่น FPS', sub: `พลาด ${missCount} รอบ แค่กดปุ่มยังไม่รอด`, color: '#ff9900' }
+    if (avgReflex === null) return { title: 'ยิงก่อนผีโผล่', sub: 'trigger discipline = ลบอนันต์', color: '#ffaa00' }
+    if (avgReflex < 150) return { title: 'ไวผิดมนุษย์ ⚡', sub: `avg ${avgReflex}ms anti-cheat จะมาเยี่ยม`, color: '#00ff88' }
+    if (avgReflex < 250) return { title: 'ฝีมือพอมีอยู่', sub: `avg ${avgReflex}ms ยังพอ carry ได้ถ้าไม่โยนเอง`, color: '#00dd77' }
+    if (avgReflex < 400) return { title: 'Gold rank energy', sub: `avg ${avgReflex}ms เล่นได้แต่ไม่มีอนาคต`, color: '#88ccff' }
+    return { title: 'เดินไปซื้อผักดีกว่า 🥬', sub: `avg ${avgReflex}ms ช้ากว่ายายกด ATM`, color: '#ff4444' }
+  }
+
+  const roast = getReflexRoast()
 
   // 🌟 ฟังก์ชันช่วยแยก Request ของรูปมีมเพื่อป้องกันอาการรูปแตก (CORS Cache)
   const getMemeUrlForIndex = (url, index) => {
@@ -552,11 +575,72 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, onScanAgain, onBackH
             ))}
           </div>
 
-          <div className="r6" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'flex-start', width: '100%', marginBottom: 'clamp(1.2rem, 2.5vw, 1.8rem)' }}>
+          <div className="r6" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'flex-start', width: '100%', marginBottom: 'clamp(0.8rem, 1.5vw, 1rem)' }}>
             {animalProfile.tags.map((tag) => (
               <span key={tag} className="tag-pill" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.68rem', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.03)', padding: '5px 14px', borderRadius: 99 }}>{tag}</span>
             ))}
           </div>
+
+          {/* 🎯 REFLEX REPORT CARD */}
+          {reflexData.length > 0 && (
+            <div className="r6" style={{ width: '100%', marginBottom: 'clamp(0.8rem, 1.5vw, 1.2rem)' }}>
+              <div style={{
+                background: 'rgba(0,0,0,0.4)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderLeft: `3px solid ${roast.color}`,
+                borderRadius: 12,
+                padding: '0.9rem 1.1rem',
+                display: 'flex', flexDirection: 'column', gap: '0.5rem',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.25em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', margin: 0 }}>⚡ REFLEX REPORT</p>
+                  <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.2)', margin: 0 }}>{reflexData.length} rounds</p>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                  <p style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(1.1rem, 2.5vw, 1.5rem)', fontWeight: 900, color: roast.color, margin: 0, whiteSpace: 'nowrap' }}>{roast.title}</p>
+                  <div style={{ width: '1px', height: 28, background: 'rgba(255,255,255,0.1)', flexShrink: 0 }} />
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', margin: 0, fontStyle: 'italic', lineHeight: 1.3 }}>{roast.sub}</p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {avgReflex !== null && (
+                    <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '3px 10px', color: 'rgba(255,255,255,0.5)' }}>
+                      AVG {avgReflex}ms
+                    </span>
+                  )}
+                  {bestReflex !== null && (
+                    <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', background: `rgba(0,255,136,0.05)`, border: '1px solid rgba(0,255,136,0.2)', borderRadius: 6, padding: '3px 10px', color: '#00ff88' }}>
+                      BEST {bestReflex}ms
+                    </span>
+                  )}
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', background: 'rgba(255,68,68,0.05)', border: '1px solid rgba(255,68,68,0.2)', borderRadius: 6, padding: '3px 10px', color: '#ff6666' }}>
+                    MISS {missCount}x
+                  </span>
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', background: 'rgba(0,255,136,0.05)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: 6, padding: '3px 10px', color: '#00ff88' }}>
+                    HIT {perfectRounds.length}x
+                  </span>
+                </div>
+
+                {/* mini bar chart */}
+                {reflexData.length > 0 && (
+                  <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: 28, marginTop: 2 }}>
+                    {reflexData.map((r, i) => {
+                      const maxMs = Math.max(...reflexData.filter(x => x.ms).map(x => x.ms), 500)
+                      const h = r.ms ? Math.max(3, Math.round((r.ms / maxMs) * 24)) : 3
+                      const color = r.verdict === 'perfect' ? '#00ff88' : r.verdict === 'early' ? '#ffaa00' : '#ff4444'
+                      return (
+                        <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                          <div style={{ width: 14, height: h, borderRadius: 2, background: color, opacity: 0.8 }} />
+                          <span style={{ fontFamily: 'monospace', fontSize: '0.45rem', color: 'rgba(255,255,255,0.2)' }}>R{r.round}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="r7" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             <button onClick={handleSaveImage} className="save-btn" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.88rem', fontWeight: 600, padding: '0.85rem', borderRadius: 12, cursor: isSaving ? 'not-allowed' : 'pointer', letterSpacing: '0.03em', textShadow: '0 1px 2px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
@@ -632,7 +716,7 @@ function ResultPage({ result, onScanAgain, onBackHome }) {
     // หน้าเปิดตัวมีมตอนแรก (ดึงมีมตัวสุดท้าย/ช็อต Jumpscare มาโชว์เพราะมันพีคสุด)
     3: <PhaseMeme memeUrl={processedUrls.memes[2]} creature={result.creature} />, 
     // ส่ง Array ของรูปมีมไปที่ Phase 4
-    4: <PhaseResult result={result} userPhotos={processedUrls.photos} matchedMemeUrls={processedUrls.memes} onScanAgain={onScanAgain} onBackHome={onBackHome} />,
+    4: <PhaseResult result={result} userPhotos={processedUrls.photos} matchedMemeUrls={processedUrls.memes} reflexData={result.reflexData || []} onScanAgain={onScanAgain} onBackHome={onBackHome} />,
   }
 
   return (

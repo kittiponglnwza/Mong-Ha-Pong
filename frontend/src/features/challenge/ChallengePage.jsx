@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 
 const API = 'http://localhost:8002'
-const JUMPSCARE_ROUND = 5
+const JUMPSCARE_ROUND = 3
 
 export default function ChallengePage({ onDone, onJumpscare, onBack }) {
   const [phase, setPhase] = useState('loading')
@@ -75,7 +75,7 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
       photosRef.current.tooLateImg || getLatestFrame(),
       photosRef.current.jumpscareImg || getLatestFrame(),
     ]
-    onJumpscare(finalPhotos)
+    onJumpscare(finalPhotos, allReflexTimes)
   }
 
   // 🎥 เปิดกล้อง + buffer loop

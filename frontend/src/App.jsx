@@ -16,7 +16,7 @@ function App() {
   }
 
   // 📸 ฟังก์ชันรับ Array รูปแอบถ่าย 3 ใบจาก ChallengePage
-  const handleJumpscare = async (imagesArray) => {
+  const handleJumpscare = async (imagesArray, reflexData = []) => {
     
     // ป้องกันกรณีส่งค่ามาวืดหรือไม่มีรูป
     if (!imagesArray || imagesArray.length === 0) {
@@ -40,7 +40,8 @@ function App() {
     // เซ็ตลง State รอแรนเดอร์หน้า ResultPage ทันที (มีทั้งรูปหลัก และ Array รูปทั้งหมด)
     setResult({ 
       scanImageUrl: primaryImg, 
-      jumpscarePhotos: imagesArray 
+      jumpscarePhotos: imagesArray,
+      reflexData,
     })
     setPage('result')
 
@@ -68,7 +69,8 @@ function App() {
         ...prev, 
         ...data, 
         scanImageUrl: primaryImg,
-        jumpscarePhotos: imagesArray 
+        jumpscarePhotos: imagesArray,
+        reflexData,
       }))
     } catch (err) {
       console.error('analyze error', err)
