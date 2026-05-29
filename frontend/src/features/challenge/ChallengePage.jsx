@@ -54,12 +54,13 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
     } catch (e) { /* ignore audio errors */ }
   }
 
-  // 🖼 ดึงรูปจาก folder ของ server
-  const fetchResultImg = () => {
-    fetch(`${API}/api/images/random`)
-      .then(r => r.json())
-      .then(data => setResultImg(`${API}/images/${data.filename}`))
-      .catch(() => setResultImg(null))
+  const fetchResultImg = (verdict) => {
+    const map = {
+      perfect: '/imges/perfect.jpg',
+      early:   '/imges/early.jpg',
+      late:    '/imges/late.jpg',
+    }
+    setResultImg(map[verdict] ?? null)
   }
 
   const getLatestFrame = () => {
@@ -189,7 +190,7 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
         setReflexMs(ms)
         setAllReflexTimes(prev => [...prev, { round: roundRef.current, ms, verdict: 'late' }])
         setResultData({ verdict: 'late', diff: 0, stopTime: 0, peekTime: 0, ms })
-        fetchResultImg()
+        fetchResultImg('late')
         setPhase('result')
       }
     }
@@ -219,7 +220,7 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
       setResultData({ verdict: 'perfect', ms: reflexAfterPeek })
     }
 
-    fetchResultImg()
+    fetchResultImg(peekStarted ? 'perfect' : 'early')
     setPhase('result')
   }
 
