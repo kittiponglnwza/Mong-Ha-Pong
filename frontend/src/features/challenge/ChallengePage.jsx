@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 
 const API = 'http://localhost:8002'
-const JUMPSCARE_ROUND = 8
+const JUMPSCARE_ROUND = 11
 
 export default function ChallengePage({ onDone, onJumpscare, onBack }) {
   const [phase, setPhase] = useState('loading')
@@ -149,7 +149,12 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
   // 🎬 เริ่มเล่น
   useEffect(() => {
     if (phase === 'playing') {
-      videoRef.current?.play()
+      const video = videoRef.current
+      if (!video) return
+      // รีเซ็ต position ก่อนเล่นเสมอ เพื่อป้องกันบัค browser cache ตำแหน่งเดิม
+      video.pause()
+      video.currentTime = 0
+      video.play().catch(e => console.error('video play error', e))
       playStartTimeRef.current = Date.now()
       setTimeout(() => {
         if (!photosRef.current.beginImg) {
