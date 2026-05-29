@@ -15,6 +15,7 @@ CLIPS = [
 ]
 
 JUMPSCARE_CLIPS = [
-    {"id": "jump_1", "filename": "fixed_jump_1.mp4", "peekTime": 0.5},
+    # {"id": "jump_1", "filename": "jump_new.mp4" },
+    {"id": "jump_1", "filename": "jump_new_fixed.mp4", "peekTime": 19}
     # {"id": "jump_2", "filename": "fixed_jump_2.mp4", "peekTime": 0.5},
 ]
