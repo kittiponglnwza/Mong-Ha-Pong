@@ -45,6 +45,7 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
   }, [])
 
   // [iPad Fix #1] Unlock audio บน iOS/iPadOS — ต้อง play silent ครั้งแรกใน user gesture
+  // ✅ FIX: unmute video ด้วยทันทีที่ unlock เพื่อให้ jumpscare มีเสียง
   const unlockAudio = () => {
     if (audioUnlockedRef.current) return
     audioUnlockedRef.current = true
@@ -60,6 +61,8 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
         })
         .catch(() => {})
     })
+    // ✅ FIX: unmute video ทันทีที่ user interact — ให้ jumpscare มีเสียง
+    if (videoRef.current) videoRef.current.muted = false
   }
 
   const playSound = (type) => {
@@ -175,6 +178,8 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
       // รีเซ็ต position ก่อนเล่นเสมอ เพื่อป้องกันบัค browser cache ตำแหน่งเดิม
       video.pause()
       video.currentTime = 0
+      // ✅ FIX: ถ้า user เคย interact แล้ว ให้ unmute ก่อนเล่น (ครอบคลุมรอบถัดๆ ไปด้วย)
+      if (audioUnlockedRef.current) video.muted = false
       // [iPad Fix #2] เพิ่ม .catch() — iOS Safari อาจ reject ถ้า state ยังไม่พร้อม
       video.play().catch(e => console.error('video play error', e))
       playStartTimeRef.current = Date.now()
@@ -374,7 +379,7 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
           onTimeUpdate={handleTimeUpdate}
           playsInline
           // [iPad Fix #2] iOS Safari บล็อก autoplay สำหรับ video ที่มีเสียง
-          // ต้องใส่ muted เพื่อให้ play() จาก useEffect ทำงานได้โดยไม่ต้องรอ user gesture
+          // ต้องใส่ muted เริ่มต้น — แล้วค่อย unmute ใน unlockAudio() หลัง user gesture
           muted
         />
       )}
