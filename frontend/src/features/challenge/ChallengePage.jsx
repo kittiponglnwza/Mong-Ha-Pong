@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 
 const API = 'https://mong-ha-pong.onrender.com' // เปลี่ยนเป็น URL จริงของ backend
-const JUMPSCARE_ROUND = 14
+const JUMPSCARE_ROUND = 1
 
 export default function ChallengePage({ onDone, onJumpscare, onBack }) {
   const [phase, setPhase] = useState('loading')

@@ -826,6 +826,7 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
           .col-right {
             flex: 1;
             min-width: 0;
+            padding-top: 2.5rem;
           }
         }
 
