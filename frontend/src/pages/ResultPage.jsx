@@ -3,34 +3,34 @@ import { getAnimalProfile } from '../utils/animalProfile'
 import end1Bg from '../assets/end_1.jpg'
 import flashImg from '../assets/flash.jpg'
 import html2canvas from 'html2canvas'
- 
+
 /* ─────────────────────────────────────────────────────────────
    Phase 1 – UPGRADED: ember particles + scanlines + heraldic ornament
 ───────────────────────────────────────────────────────────────*/
 function EmberParticles() {
   return (
-    <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none', zIndex:2, overflow:'hidden' }} xmlns="http://www.w3.org/2000/svg">
+    <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 2, overflow: 'hidden' }} xmlns="http://www.w3.org/2000/svg">
       <defs>
         {[...Array(18)].map((_, i) => (
-          <circle key={i} id={`e${i}`} r={Math.random()*2+0.8} fill={`rgba(251,${140+Math.floor(Math.random()*80)},60,${0.5+Math.random()*0.5})`} />
+          <circle key={i} id={`e${i}`} r={Math.random() * 2 + 0.8} fill={`rgba(251,${140 + Math.floor(Math.random() * 80)},60,${0.5 + Math.random() * 0.5})`} />
         ))}
       </defs>
       <style>{`
         ${[...Array(18)].map((_, i) => {
-          const x = 10 + Math.random() * 80
-          const dur = 3.5 + Math.random() * 4
-          const delay = Math.random() * 5
-          const drift = (Math.random() - 0.5) * 120
-          return `
+        const x = 10 + Math.random() * 80
+        const dur = 3.5 + Math.random() * 4
+        const delay = Math.random() * 5
+        const drift = (Math.random() - 0.5) * 120
+        return `
             @keyframes ember${i} {
               0%   { transform: translate(${x}vw, 105vh) scale(1); opacity: 0; }
               10%  { opacity: 1; }
-              80%  { opacity: ${0.3 + Math.random()*0.4}; }
+              80%  { opacity: ${0.3 + Math.random() * 0.4}; }
               100% { transform: translate(calc(${x}vw + ${drift}px), -5vh) scale(0.2); opacity: 0; }
             }
             .ember${i} { animation: ember${i} ${dur}s ease-in ${delay}s infinite; }
           `
-        }).join('')}
+      }).join('')}
       `}</style>
       {[...Array(18)].map((_, i) => {
         const x = 10 + Math.random() * 80
@@ -41,14 +41,14 @@ function EmberParticles() {
             className={`ember${i}`}
             cx={`${x}%`} cy="105%"
             rx={size} ry={size * 1.4}
-            fill={`rgba(251,${140+Math.floor(Math.random()*80)},60,0.8)`}
+            fill={`rgba(251,${140 + Math.floor(Math.random() * 80)},60,0.8)`}
           />
         )
       })}
     </svg>
   )
 }
- 
+
 function PhaseAnnounce({ creature, imageUrl }) {
   // Lock body scroll (prevents iOS bounce scroll too)
   useEffect(() => {
@@ -97,54 +97,54 @@ function PhaseAnnounce({ creature, imageUrl }) {
         .ornament-line { animation: ornament-in 0.9s cubic-bezier(0.22,1,0.36,1) 0.6s both; transform-origin: center; }
         .creature-pulse { animation: creature-glow 3s ease-in-out 1.5s infinite; }
       `}</style>
- 
+
       {/* Background image */}
       <img src={end1Bg} alt="" className="absolute inset-0 w-full h-full object-cover" />
- 
+
       {/* Dark vignette overlay */}
       <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 80% at 50% 40%, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.75) 100%)' }} />
- 
+
       {/* Scanline sweep */}
       <div style={{
-        position:'absolute', inset:0, zIndex:3, pointerEvents:'none', overflow:'hidden',
+        position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none', overflow: 'hidden',
       }}>
         <div style={{
-          position:'absolute', left:0, right:0, height:'2px',
-          background:'linear-gradient(180deg, transparent 0%, rgba(251,146,60,0.15) 50%, transparent 100%)',
-          animation:'scanline 6s linear 0.5s infinite',
+          position: 'absolute', left: 0, right: 0, height: '2px',
+          background: 'linear-gradient(180deg, transparent 0%, rgba(251,146,60,0.15) 50%, transparent 100%)',
+          animation: 'scanline 6s linear 0.5s infinite',
         }} />
       </div>
- 
+
       {/* Horizontal noise lines (static) */}
       <div style={{
-        position:'absolute', inset:0, zIndex:2, pointerEvents:'none',
-        backgroundImage:'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 4px)',
+        position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
+        backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 4px)',
       }} />
- 
+
       {/* Ember particles */}
       <EmberParticles />
- 
+
       {/* Content */}
-      <div className="relative z-10 text-center px-6" style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'0' }}>
- 
+      <div className="relative z-10 text-center px-6" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0' }}>
+
         {/* Top label */}
         <p className="float-up-1" style={{
           fontFamily: "'Cinzel', serif", fontSize: "0.65rem", letterSpacing: "0.55em",
           color: "rgba(251,191,36,0.65)", textTransform: "uppercase", marginBottom: '1.2rem',
         }}>This is</p>
- 
+
         {/* Heraldic ornament top */}
         <div className="ornament-line float-up-1" style={{
-          display:'flex', alignItems:'center', gap:'0.6rem', marginBottom:'1rem',
+          display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem',
           opacity: 0, // handled by float-up-1
         }}>
-          <div style={{ height:'1px', width:60, background:'linear-gradient(90deg, transparent, rgba(251,146,60,0.7))' }} />
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ flexShrink:0 }}>
+          <div style={{ height: '1px', width: 60, background: 'linear-gradient(90deg, transparent, rgba(251,146,60,0.7))' }} />
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ flexShrink: 0 }}>
             <path d="M9 1 L10.5 7 L17 9 L10.5 11 L9 17 L7.5 11 L1 9 L7.5 7 Z" fill="rgba(251,191,36,0.7)" />
           </svg>
-          <div style={{ height:'1px', width:60, background:'linear-gradient(90deg, rgba(251,146,60,0.7), transparent)' }} />
+          <div style={{ height: '1px', width: 60, background: 'linear-gradient(90deg, rgba(251,146,60,0.7), transparent)' }} />
         </div>
- 
+
         {/* Main title */}
         <h1 className="float-up-2 title-blaze" style={{
           fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
@@ -156,16 +156,16 @@ function PhaseAnnounce({ creature, imageUrl }) {
           marginBottom: "0",
           textShadow: "0 0 30px rgba(251,146,60,0.9), 0 0 80px rgba(251,146,60,0.5), 0 2px 4px rgba(0,0,0,0.8)",
         }}>King of B Main</h1>
- 
+
         {/* Heraldic ornament bottom */}
         <div className="float-up-4" style={{
-          display:'flex', alignItems:'center', gap:'0.5rem', marginTop:'0.9rem',
+          display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.9rem',
         }}>
-          <div style={{ height:'1px', width:40, background:'linear-gradient(90deg, transparent, rgba(251,191,36,0.4))' }} />
-          <div style={{ width:4, height:4, borderRadius:'50%', background:'rgba(251,191,36,0.6)' }} />
-          <div style={{ height:'1px', width:40, background:'linear-gradient(90deg, rgba(251,191,36,0.4), transparent)' }} />
+          <div style={{ height: '1px', width: 40, background: 'linear-gradient(90deg, transparent, rgba(251,191,36,0.4))' }} />
+          <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(251,191,36,0.6)' }} />
+          <div style={{ height: '1px', width: 40, background: 'linear-gradient(90deg, rgba(251,191,36,0.4), transparent)' }} />
         </div>
- 
+
         {/* Creature name */}
         {creature && (
           <p className="float-up-3 creature-pulse" style={{
@@ -182,28 +182,28 @@ function PhaseAnnounce({ creature, imageUrl }) {
     </section>
   )
 }
- 
+
 /* ─────────────────────────────────────────────────────────────
    Phase 2 – UPGRADED: film grain + breathing spotlight + classified frame + glitch
 ───────────────────────────────────────────────────────────────*/
 const boomAudio = new Audio('/sounds/faaah.mp3')
 boomAudio.volume = 1.0
 boomAudio.load()
- 
+
 function playBoom() {
   boomAudio.currentTime = 0
-  boomAudio.play().catch(() => {})
+  boomAudio.play().catch(() => { })
 }
- 
+
 const flashAudio = new Audio('/sounds/flash.mp3')
 flashAudio.volume = 1.0
 flashAudio.load()
- 
+
 function playFlashSound() {
   flashAudio.currentTime = 0
-  flashAudio.play().catch(() => {})
+  flashAudio.play().catch(() => { })
 }
- 
+
 function FilmGrain() {
   const canvasRef = useRef(null)
   useEffect(() => {
@@ -218,8 +218,8 @@ function FilmGrain() {
       const data = imageData.data
       for (let i = 0; i < data.length; i += 4) {
         const v = Math.random() * 30
-        data[i] = data[i+1] = data[i+2] = v
-        data[i+3] = Math.random() * 22
+        data[i] = data[i + 1] = data[i + 2] = v
+        data[i + 3] = Math.random() * 22
       }
       ctx.putImageData(imageData, 0, 0)
       frame = requestAnimationFrame(draw)
@@ -229,12 +229,12 @@ function FilmGrain() {
   }, [])
   return (
     <canvas ref={canvasRef} style={{
-      position:'absolute', inset:0, width:'100%', height:'100%',
-      pointerEvents:'none', zIndex:20, mixBlendMode:'overlay',
+      position: 'absolute', inset: 0, width: '100%', height: '100%',
+      pointerEvents: 'none', zIndex: 20, mixBlendMode: 'overlay',
     }} />
   )
 }
- 
+
 function PhaseFace({ imageUrl }) {
   const [step, setStep] = useState(0)
   // Lock body scroll (prevents iOS bounce scroll too)
@@ -252,15 +252,15 @@ function PhaseFace({ imageUrl }) {
     }
   }, [])
 
- 
+
   useEffect(() => {
     const t0 = setTimeout(() => { setStep(1); playFlashSound() }, 300)
     const t1 = setTimeout(() => setStep(2), 350)
     const t2 = setTimeout(() => { setStep(3); playBoom() }, 850)
     const t3 = setTimeout(() => setStep(4), 1650)
-    return () => { [t0,t1,t2,t3].forEach(clearTimeout) }
+    return () => { [t0, t1, t2, t3].forEach(clearTimeout) }
   }, [])
- 
+
   return (
     <section style={{
       minHeight: '100svh', background: '#000', overflow: 'hidden',
@@ -313,97 +313,97 @@ function PhaseFace({ imageUrl }) {
         .flash-out       { animation: flash-out 0.75s cubic-bezier(0.4,0,1,1) both; }
         .spotlight       { animation: spotlight-breathe 4s ease-in-out 2s infinite; }
       `}</style>
- 
+
       {/* Flash overlay */}
       {step >= 1 && step <= 3 && (
         <img
           src={flashImg}
           className={step === 1 ? 'flash-in' : step === 3 ? 'flash-out' : ''}
           alt=""
-          style={{ position:'absolute', inset:0, zIndex:50, pointerEvents:'none', width:'100%', height:'100%', objectFit:'cover' }}
+          style={{ position: 'absolute', inset: 0, zIndex: 50, pointerEvents: 'none', width: '100%', height: '100%', objectFit: 'cover' }}
         />
       )}
- 
+
       {/* Breathing spotlight vignette */}
       {step >= 3 && (
         <div className="spotlight" style={{
-          position:'absolute', inset:0, pointerEvents:'none', zIndex:5,
-          background:'radial-gradient(ellipse 60% 70% at 50% 45%, transparent 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.9) 100%)',
-          animation:'vignette-in 1.4s ease both, spotlight-breathe 4s ease-in-out 2s infinite',
+          position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 5,
+          background: 'radial-gradient(ellipse 60% 70% at 50% 45%, transparent 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.9) 100%)',
+          animation: 'vignette-in 1.4s ease both, spotlight-breathe 4s ease-in-out 2s infinite',
         }} />
       )}
- 
+
       {/* Film grain */}
       <FilmGrain />
- 
+
       {/* ── Polaroid card ── */}
       {step >= 3 && (
         <div className="polaroid-drop" style={{
-          position:'relative', zIndex:10,
-          display:'flex', flexDirection:'column',
-          background:'#f5f0e8',
-          padding:'10px 10px 52px 10px',
-          borderRadius:'2px',
-          width:'min(290px,76vw)',
+          position: 'relative', zIndex: 10,
+          display: 'flex', flexDirection: 'column',
+          background: '#f5f0e8',
+          padding: '10px 10px 52px 10px',
+          borderRadius: '2px',
+          width: 'min(290px,76vw)',
           boxShadow:
             '0 8px 20px rgba(0,0,0,0.35), 0 24px 60px rgba(0,0,0,0.5), 0 60px 120px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(0,0,0,0.08)',
-          transform:'rotate(-1.8deg)',
+          transform: 'rotate(-1.8deg)',
         }}>
- 
+
           {/* Tape strip top-center */}
           <div className="tape-in" style={{
-            position:'absolute', top:-13, left:'50%', transform:'translateX(-50%) rotate(-2deg)',
-            width:72, height:22, zIndex:20,
-            background:'rgba(255,248,200,0.55)',
-            backdropFilter:'blur(1px)',
-            borderRadius:'1px',
-            boxShadow:'0 1px 3px rgba(0,0,0,0.15)',
+            position: 'absolute', top: -13, left: '50%', transform: 'translateX(-50%) rotate(-2deg)',
+            width: 72, height: 22, zIndex: 20,
+            background: 'rgba(255,248,200,0.55)',
+            backdropFilter: 'blur(1px)',
+            borderRadius: '1px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
           }} />
- 
+
           {/* Photo area */}
           <div style={{
-            width:'100%', aspectRatio:'1/1', overflow:'hidden',
-            background:'#d0c8b8',
-            position:'relative',
+            width: '100%', aspectRatio: '1/1', overflow: 'hidden',
+            background: '#d0c8b8',
+            position: 'relative',
           }}>
             {imageUrl
               ? <img
-                  src={imageUrl}
-                  alt="Your face"
-                  className="photo-develop"
-                  style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center 18%', display:'block' }}
-                />
-              : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'4rem' }}>📸</div>
+                src={imageUrl}
+                alt="Your face"
+                className="photo-develop"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 18%', display: 'block' }}
+              />
+              : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4rem' }}>📸</div>
             }
             {/* Vignette inside photo */}
             <div style={{
-              position:'absolute', inset:0, pointerEvents:'none',
-              background:'radial-gradient(ellipse 90% 90% at 50% 50%, transparent 55%, rgba(0,0,0,0.25) 100%)',
+              position: 'absolute', inset: 0, pointerEvents: 'none',
+              background: 'radial-gradient(ellipse 90% 90% at 50% 50%, transparent 55%, rgba(0,0,0,0.25) 100%)',
             }} />
           </div>
- 
+
           {/* Handwritten caption */}
           {step >= 4 && (
             <div className="caption-in" style={{
-              position:'absolute', bottom:0, left:0, right:0, height:52,
-              display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:2,
+              position: 'absolute', bottom: 0, left: 0, right: 0, height: 52,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
             }}>
               <p style={{
-                fontFamily:"'Caveat', cursive",
-                fontSize:'clamp(1.1rem,4vw,1.35rem)',
-                fontWeight:700,
-                color:'#2a1f0e',
-                margin:0,
-                letterSpacing:'0.02em',
-                lineHeight:1,
+                fontFamily: "'Caveat', cursive",
+                fontSize: 'clamp(1.1rem,4vw,1.35rem)',
+                fontWeight: 700,
+                color: '#2a1f0e',
+                margin: 0,
+                letterSpacing: '0.02em',
+                lineHeight: 1,
               }}>King of B Main</p>
               <p style={{
-                fontFamily:"'Caveat', cursive",
-                fontSize:'0.72rem',
-                fontWeight:600,
-                color:'rgba(80,55,20,0.55)',
-                margin:0,
-                letterSpacing:'0.08em',
+                fontFamily: "'Caveat', cursive",
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                color: 'rgba(80,55,20,0.55)',
+                margin: 0,
+                letterSpacing: '0.08em',
               }}>2025 ✦</p>
             </div>
           )}
@@ -412,7 +412,7 @@ function PhaseFace({ imageUrl }) {
     </section>
   )
 }
- 
+
 /* ─────────────────────────────────────────────────────────────
    Phase 3 – Polaroid meme reveal
 ───────────────────────────────────────────────────────────────*/
@@ -433,19 +433,19 @@ function PhaseMeme({ memeUrl, creature }) {
   }, [])
 
   const [step, setStep] = useState(0)
- 
+
   useEffect(() => {
     const t0 = setTimeout(() => setStep(1), 400)
     const t1 = setTimeout(() => setStep(2), 1200)
     const t2 = setTimeout(() => setStep(3), 2000)
-    return () => { [t0,t1,t2].forEach(clearTimeout) }
+    return () => { [t0, t1, t2].forEach(clearTimeout) }
   }, [])
- 
+
   return (
     <section style={{
-      minHeight:'100svh', background:'#111009', overflow:'hidden',
-      display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-      position:'relative',
+      minHeight: '100svh', background: '#111009', overflow: 'hidden',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      position: 'relative',
     }}>
       <style>{`
         @keyframes p3-bg-zoom {
@@ -476,70 +476,70 @@ function PhaseMeme({ memeUrl, creature }) {
         .p3-caption  { animation: p3-caption 0.6s ease 0.7s both; }
         .p3-tape     { animation: p3-tape 0.4s cubic-bezier(0.22,1,0.36,1) 0.2s both; transform-origin:center; }
       `}</style>
- 
+
       {/* Blurred bg from meme */}
       {step >= 1 && memeUrl && (
         <img src={memeUrl} alt="" style={{
-          position:'absolute', inset:0, width:'100%', height:'100%',
-          objectFit:'cover', zIndex:1, filter:'blur(28px) saturate(0.4)',
-          animation:'p3-bg-zoom 1.5s cubic-bezier(0.16,1,0.3,1) both',
+          position: 'absolute', inset: 0, width: '100%', height: '100%',
+          objectFit: 'cover', zIndex: 1, filter: 'blur(28px) saturate(0.4)',
+          animation: 'p3-bg-zoom 1.5s cubic-bezier(0.16,1,0.3,1) both',
         }} />
       )}
-      <div style={{ position:'absolute', inset:0, zIndex:2, background:'rgba(0,0,0,0.72)' }} />
- 
+      <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'rgba(0,0,0,0.72)' }} />
+
       {/* Polaroid card */}
       {step >= 2 && (
         <div className="p3-polaroid" style={{
-          position:'relative', zIndex:10,
-          display:'flex', flexDirection:'column',
-          background:'#f2ede3',
-          padding:'10px 10px 60px 10px',
-          borderRadius:'2px',
-          width:'min(300px,78vw)',
+          position: 'relative', zIndex: 10,
+          display: 'flex', flexDirection: 'column',
+          background: '#f2ede3',
+          padding: '10px 10px 60px 10px',
+          borderRadius: '2px',
+          width: 'min(300px,78vw)',
           boxShadow:
             '0 8px 16px rgba(0,0,0,0.3), 0 28px 70px rgba(0,0,0,0.55), 0 60px 120px rgba(0,0,0,0.5)',
-          transform:'rotate(2deg)',
+          transform: 'rotate(2deg)',
         }}>
- 
+
           {/* Tape */}
           <div className="p3-tape" style={{
-            position:'absolute', top:-14, left:'50%',
-            transform:'translateX(-50%) rotate(3deg)',
-            width:80, height:24, zIndex:20,
-            background:'rgba(255,248,190,0.52)',
-            backdropFilter:'blur(2px)',
-            borderRadius:'1px',
-            boxShadow:'0 1px 4px rgba(0,0,0,0.12)',
+            position: 'absolute', top: -14, left: '50%',
+            transform: 'translateX(-50%) rotate(3deg)',
+            width: 80, height: 24, zIndex: 20,
+            background: 'rgba(255,248,190,0.52)',
+            backdropFilter: 'blur(2px)',
+            borderRadius: '1px',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
           }} />
- 
+
           {/* Photo */}
-          <div style={{ width:'100%', aspectRatio:'1/1', overflow:'hidden', background:'#c8c0b0', position:'relative' }}>
+          <div style={{ width: '100%', aspectRatio: '1/1', overflow: 'hidden', background: '#c8c0b0', position: 'relative' }}>
             {memeUrl
               ? <img src={memeUrl} alt="meme" className="p3-develop"
-                  style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top', display:'block' }} />
-              : <div style={{ width:'100%', height:'100%', background:'#c8c0b0' }} />
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
+              : <div style={{ width: '100%', height: '100%', background: '#c8c0b0' }} />
             }
             <div style={{
-              position:'absolute', inset:0, pointerEvents:'none',
-              background:'radial-gradient(ellipse 90% 90% at 50% 50%, transparent 50%, rgba(0,0,0,0.22) 100%)',
+              position: 'absolute', inset: 0, pointerEvents: 'none',
+              background: 'radial-gradient(ellipse 90% 90% at 50% 50%, transparent 50%, rgba(0,0,0,0.22) 100%)',
             }} />
           </div>
- 
+
           {/* Caption */}
           {step >= 3 && (
             <div className="p3-caption" style={{
-              position:'absolute', bottom:0, left:0, right:0, height:60,
-              display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:3,
+              position: 'absolute', bottom: 0, left: 0, right: 0, height: 60,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3,
             }}>
               <p style={{
-                fontFamily:"'Caveat', cursive",
-                fontSize:'clamp(1rem,3.5vw,1.25rem)',
-                fontWeight:700, color:'#2a1f0e', margin:0, letterSpacing:'0.02em', lineHeight:1,
+                fontFamily: "'Caveat', cursive",
+                fontSize: 'clamp(1rem,3.5vw,1.25rem)',
+                fontWeight: 700, color: '#2a1f0e', margin: 0, letterSpacing: '0.02em', lineHeight: 1,
               }}>{creature}</p>
               <p style={{
-                fontFamily:"'Caveat', cursive",
-                fontSize:'0.7rem', fontWeight:600,
-                color:'rgba(80,55,20,0.5)', margin:0, letterSpacing:'0.06em',
+                fontFamily: "'Caveat', cursive",
+                fontSize: '0.7rem', fontWeight: 600,
+                color: 'rgba(80,55,20,0.5)', margin: 0, letterSpacing: '0.06em',
               }}>b main scanner ✦</p>
             </div>
           )}
@@ -556,15 +556,15 @@ function PhaseMeme({ memeUrl, creature }) {
 
 // 🎯 Valorant rank config — สี + ไอคอน
 const VALORANT_RANKS = {
-  UNRANKED:  { color: '#9e9e9e', glow: 'rgba(158,158,158,0.3)',  label: 'UNRANKED'  },
-  IRON:      { color: '#8a8a8a', glow: 'rgba(138,138,138,0.3)',  label: 'IRON'      },
-  BRONZE:    { color: '#cd7f32', glow: 'rgba(205,127,50,0.35)',   label: 'BRONZE'    },
-  SILVER:    { color: '#b0b8c1', glow: 'rgba(176,184,193,0.35)', label: 'SILVER'    },
-  GOLD:      { color: '#f5c842', glow: 'rgba(245,200,66,0.4)',   label: 'GOLD'      },
-  PLATINUM:  { color: '#4ecdc4', glow: 'rgba(78,205,196,0.4)',   label: 'PLATINUM'  },
-  DIAMOND:   { color: '#9ecfec', glow: 'rgba(158,207,236,0.45)', label: 'DIAMOND'   },
-  IMMORTAL:  { color: '#ff4655', glow: 'rgba(255,70,85,0.5)',    label: 'IMMORTAL'  },
-  RADIANT:   { color: '#fffb8f', glow: 'rgba(255,251,143,0.6)',  label: 'RADIANT'   },
+  UNRANKED: { color: '#9e9e9e', glow: 'rgba(158,158,158,0.3)', label: 'UNRANKED' },
+  IRON: { color: '#8a8a8a', glow: 'rgba(138,138,138,0.3)', label: 'IRON' },
+  BRONZE: { color: '#cd7f32', glow: 'rgba(205,127,50,0.35)', label: 'BRONZE' },
+  SILVER: { color: '#b0b8c1', glow: 'rgba(176,184,193,0.35)', label: 'SILVER' },
+  GOLD: { color: '#f5c842', glow: 'rgba(245,200,66,0.4)', label: 'GOLD' },
+  PLATINUM: { color: '#4ecdc4', glow: 'rgba(78,205,196,0.4)', label: 'PLATINUM' },
+  DIAMOND: { color: '#9ecfec', glow: 'rgba(158,207,236,0.45)', label: 'DIAMOND' },
+  IMMORTAL: { color: '#ff4655', glow: 'rgba(255,70,85,0.5)', label: 'IMMORTAL' },
+  RADIANT: { color: '#fffb8f', glow: 'rgba(255,251,143,0.6)', label: 'RADIANT' },
 }
 
 function getRarityColor(rank) {
@@ -613,16 +613,16 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
 
   // 🎯 Reflex Roast — random pick จาก pool คงที่ ไม่ต้องเรียก API
   const ROAST_POOL = [
-    { title: 'Aim ดี แต่สมอง AFK',       sub: 'reaction ไวเหมือนใช้ config โปร แต่ decision making ยัง Bronze ติดพื้น',              color: '#ff4444' },
-    { title: 'Radiant ในฝัน',             sub: 'ยิงโดนไม่กี่นัดแล้วคิดว่าตัวเองขึ้นโปรลีกได้ ทั้งที่ชีวิตจริงยังแพ้ tutorial',      color: '#ff6600' },
-    { title: 'Crosshair เทพ คนเล่นกาก',   sub: 'เซ็ต sensitivity มาอย่างเทพ แต่คนจับเมาส์ยังเหมือน NPC หลงแมพ',                      color: '#ff4488' },
-    { title: 'Reaction ไวเกินพ่อ',        sub: 'เร็วแบบนี้ไม่รู้ฝึก aim หรือโดนไฟดูดตอนคลิกเมาส์',                                  color: '#ff4444' },
-    { title: 'Grandpa Flick Machine',     sub: 'ลากเมาส์เหมือนกำลังเขียนจดหมายลาโลก ไม่ใช่เล่น FPS',                               color: '#ff6600' },
-    { title: 'Aimlabs Victim',            sub: 'ซ้อม aim มาเป็นร้อยชั่วโมง สุดท้ายยังยิงกำแพงเก่งกว่าศัตรู',                        color: '#ff4444' },
-    { title: 'Fake Talon Player',         sub: 'กดไวเหมือนคนเก่ง แต่พอดูจริงๆคือ panic click ล้วนๆ',                                color: '#ff4488' },
-    { title: 'Human Delay 300ms',         sub: 'อินเทอร์เน็ตบ้านยังตอบสนองเร็วกว่ามือมึงอีก',                                       color: '#ff6600' },
-    { title: 'Bot Detected 🤖',           sub: 'reaction ต่ำผิดมนุษย์ ขนาด AI ยังสงสาร social skill มึง',                           color: '#ff4444' },
-    { title: 'One Tap แต่ One Braincell', sub: 'ยิงเข้าเป้าก็จริง แต่ IQ gameplay ยังต่ำกว่า FPS ที่เล่น',                          color: '#ff4488' },
+    { title: 'Aim ดี แต่สมอง AFK', sub: 'reaction ไวเหมือนใช้ config โปร แต่ decision making ยัง Bronze ติดพื้น', color: '#ff4444' },
+    { title: 'Radiant ในฝัน', sub: 'ยิงโดนไม่กี่นัดแล้วคิดว่าตัวเองขึ้นโปรลีกได้ ทั้งที่ชีวิตจริงยังแพ้ tutorial', color: '#ff6600' },
+    { title: 'Crosshair เทพ คนเล่นกาก', sub: 'เซ็ต sensitivity มาอย่างเทพ แต่คนจับเมาส์ยังเหมือน NPC หลงแมพ', color: '#ff4488' },
+    { title: 'Reaction ไวเกินพ่อ', sub: 'เร็วแบบนี้ไม่รู้ฝึก aim หรือโดนไฟดูดตอนคลิกเมาส์', color: '#ff4444' },
+    { title: 'Grandpa Flick Machine', sub: 'ลากเมาส์เหมือนกำลังเขียนจดหมายลาโลก ไม่ใช่เล่น FPS', color: '#ff6600' },
+    { title: 'Aimlabs Victim', sub: 'ซ้อม aim มาเป็นร้อยชั่วโมง สุดท้ายยังยิงกำแพงเก่งกว่าศัตรู', color: '#ff4444' },
+    { title: 'Fake Talon Player', sub: 'กดไวเหมือนคนเก่ง แต่พอดูจริงๆคือ panic click ล้วนๆ', color: '#ff4488' },
+    { title: 'Human Delay 300ms', sub: 'อินเทอร์เน็ตบ้านยังตอบสนองเร็วกว่ามือมึงอีก', color: '#ff6600' },
+    { title: 'Bot Detected 🤖', sub: 'reaction ต่ำผิดมนุษย์ ขนาด AI ยังสงสาร social skill มึง', color: '#ff4444' },
+    { title: 'One Tap แต่ One Braincell', sub: 'ยิงเข้าเป้าก็จริง แต่ IQ gameplay ยังต่ำกว่า FPS ที่เล่น', color: '#ff4488' },
   ]
 
   const [roast, setRoast] = useState({ title: '...', sub: '...', color: 'rgba(255,255,255,0.2)' })
@@ -901,12 +901,12 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
             <div key={i} style={{ display: 'flex', gap: '6px' }}>
               <div style={{ flex: 1, aspectRatio: '1/1', overflow: 'hidden', background: '#d1d1d1' }}>
                 {userImgUrl
-                  ? <img src={userImgUrl}  alt="You" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter }} />
+                  ? <img src={userImgUrl} alt="You" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter }} />
                   : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: '#e5e5e5' }}>📸</div>}
               </div>
               <div style={{ flex: 1, aspectRatio: '1/1', overflow: 'hidden', background: '#d1d1d1' }}>
                 {currentMemeUrl
-                  ? <img src={getMemeUrlForIndex(currentMemeUrl, i)}  alt={animalProfile.title} style={{ width: '100%', height: '100%', objectFit: 'cover', filter }} />
+                  ? <img src={getMemeUrlForIndex(currentMemeUrl, i)} alt={animalProfile.title} style={{ width: '100%', height: '100%', objectFit: 'cover', filter }} />
                   : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: '#e5e5e5' }}>🐾</div>}
               </div>
             </div>
@@ -947,12 +947,12 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
                   <div key={i} style={{ display: 'flex', gap: 'clamp(4px, 0.8vw, 6px)' }}>
                     <div style={{ flex: 1, aspectRatio: '1/1', overflow: 'hidden', background: '#d1d1d1' }}>
                       {userImgUrl
-                        ? <img src={userImgUrl}  alt="You" className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter }} />
+                        ? <img src={userImgUrl} alt="You" className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter }} />
                         : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: '#e5e5e5' }}>📸</div>}
                     </div>
                     <div style={{ flex: 1, aspectRatio: '1/1', overflow: 'hidden', background: '#d1d1d1' }}>
                       {currentMemeUrl
-                        ? <img src={getMemeUrlForIndex(currentMemeUrl, i)}  alt={animalProfile.title} className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', filter }} />
+                        ? <img src={getMemeUrlForIndex(currentMemeUrl, i)} alt={animalProfile.title} className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', filter }} />
                         : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: '#e5e5e5' }}>🐾</div>}
                     </div>
                   </div>
@@ -1013,9 +1013,9 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
           {/* 🎯 Stat cards — Rarity ใช้ Valorant rank */}
           <div className="r5" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: 'clamp(0.8rem, 1.5vw, 1.2rem)' }}>
             {[
-              { label: 'Aura',       val: result.aura,      icon: '✦', accent: 'rgba(249,115,22,', textColor: '#ff9a52' },
+              { label: 'Aura', val: result.aura, icon: '✦', accent: 'rgba(249,115,22,', textColor: '#ff9a52' },
               { label: 'Braincells', val: result.braincells, icon: '◈', accent: 'rgba(139,92,246,', textColor: '#a78bfa' },
-              { label: 'Rarity',     val: result.rarity,    icon: '◇', accent: 'rgba(245,158,11,', textColor: '#fbbf24' },
+              { label: 'Rarity', val: result.rarity, icon: '◇', accent: 'rgba(245,158,11,', textColor: '#fbbf24' },
             ].map(({ label, val, icon, accent, textColor }) => {
               // 🎯 Rarity card ใช้สีและ glow ตาม Valorant rank
               const isRarity = label === 'Rarity'
@@ -1222,13 +1222,13 @@ function ResultPage({ result, onScanAgain, onBackHome }) {
           const blob = await res.blob();
           return URL.createObjectURL(blob);
         }
-      } catch {}
+      } catch { }
       // Fallback: no-cors (opaque response — can still create blob for <img> display)
       try {
         const res = await fetch(url, { mode: 'no-cors', cache: 'force-cache' });
         const blob = await res.blob();
         if (blob.size > 0) return URL.createObjectURL(blob);
-      } catch {}
+      } catch { }
       // Last resort: return original URL (img without crossOrigin attr will still display)
       return url;
     };
@@ -1236,10 +1236,10 @@ function ResultPage({ result, onScanAgain, onBackHome }) {
     const fallbackPhoto = result.scanImageUrl || '';
     const rawPhotos = (result.jumpscarePhotos && result.jumpscarePhotos.length === 3)
       ? [
-          result.jumpscarePhotos[0] || fallbackPhoto,
-          result.jumpscarePhotos[1] || fallbackPhoto,
-          result.jumpscarePhotos[2] || fallbackPhoto
-        ]
+        result.jumpscarePhotos[0] || fallbackPhoto,
+        result.jumpscarePhotos[1] || fallbackPhoto,
+        result.jumpscarePhotos[2] || fallbackPhoto
+      ]
       : [fallbackPhoto, fallbackPhoto, fallbackPhoto];
 
     const fallbackMeme = result.matched_meme_url || '';
@@ -1251,19 +1251,23 @@ function ResultPage({ result, onScanAgain, onBackHome }) {
     const blobUrls = [];
 
     (async () => {
-      const [scanImg, p0, p1, p2, m0, m1, m2] = await Promise.all([
-        toBlobUrl(result.scanImageUrl),
-        toBlobUrl(rawPhotos[0]),
-        toBlobUrl(rawPhotos[1]),
-        toBlobUrl(rawPhotos[2]),
-        toBlobUrl(rawMemes[0]),
-        toBlobUrl(rawMemes[1]),
-        toBlobUrl(rawMemes[2]),
-      ]);
+      // ดึง URL มาใช้งานตรงๆ เลย ไม่ต้องผ่าน toBlobUrl แล้ว
+      const scanImg = result.scanImageUrl;
+      const p0 = rawPhotos[0];
+      const p1 = rawPhotos[1];
+      const p2 = rawPhotos[2];
+      const m0 = rawMemes[0];
+      const m1 = rawMemes[1];
+      const m2 = rawMemes[2];
+
       if (cancelled) return;
-      // track blob URLs for cleanup
-      [scanImg, p0, p1, p2, m0, m1, m2].forEach(u => { if (u.startsWith('blob:')) blobUrls.push(u); });
-      setProcessedUrls({ scanImg, photos: [p0, p1, p2], memes: [m0, m1, m2] });
+
+      // ส่ง URL เข้า State ไปแสดงผลเลย
+      setProcessedUrls({
+        scanImg: scanImg,
+        photos: [p0, p1, p2],
+        memes: [m0, m1, m2]
+      });
     })();
 
     const timings = [
