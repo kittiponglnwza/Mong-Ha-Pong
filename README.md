@@ -126,8 +126,8 @@ Including UI design, component development, styling, animation tuning, and deplo
 
 ##  Author
 
-**Kittipong**  
-Frontend Developer · UI Explorer · Builder of immersive interfaces
+**Kittipong ( TopZ )**  
+Full Stack Developer · UI Explorer · Builder of immersive interfaces
 
 ---
 
