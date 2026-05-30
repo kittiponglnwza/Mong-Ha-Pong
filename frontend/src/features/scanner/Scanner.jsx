@@ -275,7 +275,7 @@ function Scanner({ onDone, onBack }) {
     try {
       const imageBlob = await captureFrame()
       const scanImageUrl = await blobToDataUrl(imageBlob)
-      const response = await fetch('http://localhost:8000/analyze/', {
+      const response = await fetch('https://mong-ha-pong.onrender.com/analyze/', {
         method: 'POST',
         headers: { 'Content-Type': 'image/jpeg' },
         body: imageBlob,

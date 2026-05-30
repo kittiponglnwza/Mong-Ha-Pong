@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 
-const API = 'http://localhost:8002'
+const API = 'https://mong-ha-pong.onrender.com' // เปลี่ยนเป็น URL จริงของ backend
 const JUMPSCARE_ROUND = 11
 
 export default function ChallengePage({ onDone, onJumpscare, onBack }) {

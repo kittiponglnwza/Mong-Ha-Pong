@@ -57,7 +57,7 @@ function App() {
       }
       const blob = new Blob([bytes], { type: 'image/jpeg' })
 
-      const formRes = await fetch('http://localhost:8002/analyze/', {
+      const formRes = await fetch('https://mong-ha-pong.onrender.com/analyze/', {
         method: 'POST',
         headers: { 'Content-Type': 'image/jpeg' },
         body: blob,
