@@ -558,7 +558,7 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
     { title: 'Aimlabs Victim',            sub: 'ซ้อม aim มาเป็นร้อยชั่วโมง สุดท้ายยังยิงกำแพงเก่งกว่าศัตรู',                        color: '#ff4444' },
     { title: 'Fake Talon Player',         sub: 'กดไวเหมือนคนเก่ง แต่พอดูจริงๆคือ panic click ล้วนๆ',                                color: '#ff4488' },
     { title: 'Human Delay 300ms',         sub: 'อินเทอร์เน็ตบ้านยังตอบสนองเร็วกว่ามือมึงอีก',                                       color: '#ff6600' },
-    { title: 'Bot Detected 🤖',           sub: 'reaction ต่ำผิดมนุษย์ ขนาด AI ยังสงสาร social skill มึง',                           color: '#ff4444' },
+    { title: 'Bot Detected ',           sub: 'reaction ต่ำผิดมนุษย์ ขนาด AI ยังสงสาร social skill มึง',                           color: '#ff4444' },
     { title: 'One Tap แต่ One Braincell', sub: 'ยิงเข้าเป้าก็จริง แต่ IQ gameplay ยังต่ำกว่า FPS ที่เล่น',                          color: '#ff4488' },
   ]
 
@@ -692,16 +692,34 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
       setIsSaving(true);
       const canvas = await html2canvas(downloadCardRef.current, {
         useCORS: true,
-        allowTaint: false,
+        allowTaint: true,
         backgroundColor: null,
         scale: 3,
         logging: false
       });
       const dataUrl = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = `b-main-${result.creature || 'result'}.png`;
-      link.href = dataUrl;
-      link.click();
+
+      // iOS Safari ไม่ support link.click() download → เปิด new tab แทน
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (isIOS) {
+        const win = window.open();
+        if (win) {
+          win.document.write(`<img src="${dataUrl}" style="max-width:100%;display:block;margin:auto;" />`);
+          win.document.title = 'Long press image to save';
+        } else {
+          // popup blocked → fallback
+          const link = document.createElement('a');
+          link.href = dataUrl;
+          link.download = `b-main-${result.creature || 'result'}.png`;
+          link.click();
+        }
+      } else {
+        const link = document.createElement('a');
+        link.download = `b-main-${result.creature || 'result'}.png`;
+        link.href = dataUrl;
+        link.click();
+      }
     } catch (error) {
       console.error('Failed to save image:', error);
       alert('ไม่สามารถบันทึกรูปภาพได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง');
@@ -716,12 +734,13 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
       backgroundImage: `linear-gradient(135deg, rgba(5, 5, 12, 0.94) 0%, rgba(10, 10, 22, 0.97) 100%), url(${end1Bg})`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
-      backgroundAttachment: 'fixed',
+      backgroundAttachment: 'scroll', // 'fixed' crashes on iOS Safari
       color: '#f8f6f2',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       overflowX: 'hidden',
+      overflowY: 'auto',
       position: 'relative',
     }}>
       <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap' />
@@ -784,6 +803,24 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
           margin: 0 auto;
           padding: 2rem 1.25rem;
           gap: 2rem;
+        }
+
+        /* iPad portrait (768–1023px) */
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .layout-container {
+            flex-direction: row;
+            align-items: flex-start;
+            padding: 2rem 2rem;
+            gap: 2.5rem;
+            flex-wrap: nowrap;
+          }
+          .col-left {
+            flex: 0 0 auto;
+          }
+          .col-right {
+            flex: 1;
+            min-width: 0;
+          }
         }
 
         @media (min-width: 1024px) {
@@ -872,18 +909,16 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
               {['grayscale(0.1) sepia(0.02)', 'none', 'grayscale(0.3) contrast(1.15)'].map((filter, i) => {
                 const userImgUrl = userPhotos[i];
                 const currentMemeUrl = matchedMemeUrls[i];
-                const isUserBase64 = userImgUrl?.startsWith('data:');
-                const isMemeBase64 = currentMemeUrl?.startsWith('data:');
                 return (
                   <div key={i} style={{ display: 'flex', gap: 'clamp(4px, 0.8vw, 6px)' }}>
                     <div style={{ flex: 1, aspectRatio: '1/1', overflow: 'hidden', background: '#d1d1d1' }}>
                       {userImgUrl
-                        ? <img src={userImgUrl} crossOrigin={isUserBase64 ? undefined : "anonymous"} alt="You" className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter }} />
+                        ? <img src={userImgUrl} alt="You" className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter }} />
                         : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: '#e5e5e5' }}>📸</div>}
                     </div>
                     <div style={{ flex: 1, aspectRatio: '1/1', overflow: 'hidden', background: '#d1d1d1' }}>
                       {currentMemeUrl
-                        ? <img src={getMemeUrlForIndex(currentMemeUrl, i)} crossOrigin={isMemeBase64 ? undefined : "anonymous"} alt={animalProfile.title} className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', filter }} />
+                        ? <img src={getMemeUrlForIndex(currentMemeUrl, i)} alt={animalProfile.title} className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', filter }} />
                         : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: '#e5e5e5' }}>🐾</div>}
                     </div>
                   </div>
@@ -1117,7 +1152,7 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
 
           <div className="r7" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             <button onClick={handleSaveImage} className="save-btn" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.88rem', fontWeight: 600, padding: '0.85rem', borderRadius: 12, cursor: isSaving ? 'not-allowed' : 'pointer', letterSpacing: '0.03em', textShadow: '0 1px 2px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-              {isSaving ? 'Saving image...' : 'Save image'}
+              {isSaving ? 'Generating...' : (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) ? 'Save image (long press to save)' : 'Save image'}
             </button>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
               <button onClick={onScanAgain} className="ghost-btn" style={{ fontFamily: "'DM Sans', sans-serif", background: 'transparent', border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.65)', fontSize: '0.82rem', padding: '0.8rem', borderRadius: 12, cursor: 'pointer', letterSpacing: '0.02em', fontWeight: 500 }}>Repeat Scan</button>

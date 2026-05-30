@@ -478,7 +478,7 @@ export default function HomePage({ onPlay, onAbout }) {
           {/* Navigation */}
           <nav className="flex flex-col gap-3 pt-3 nav-anim" style={{ width: '260px' }}>
             <button className="play-btn" onClick={onPlay}>
-              <span>▶&nbsp; Play Now</span>
+              <span>&nbsp; Play Now</span>
             </button>
 
             <button className="about-btn" onClick={onAbout}>

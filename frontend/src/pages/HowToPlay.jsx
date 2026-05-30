@@ -338,7 +338,7 @@ export default function HowToPlay({ onBegin, onBack }) {
                 disabled={camStatus !== 'Connected'}
                 className="btn-primary"
               >
-                ▶ Start
+                 Start
               </button>
             </div>
           </div>
