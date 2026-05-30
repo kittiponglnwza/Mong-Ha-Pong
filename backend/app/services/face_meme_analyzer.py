@@ -261,7 +261,7 @@ def analyze_face_meme(image_bytes):
     def image_to_url(img_path):
         relative_path = img_path.relative_to(MEME_DIR)
         encoded_path = quote(str(relative_path).replace("\\", "/"))
-        return f"http://localhost:8002/memes/{encoded_path}"
+        return f"https://xsxvisvacsgikjwffirg.supabase.co/storage/v1/object/public/memes/{encoded_path}"
 
     matched_meme_urls = [image_to_url(img) for img in matched_images]
     # backward-compat: ยังคง matched_meme_url (รูปแรก) ไว้ให้ client เก่าใช้ได้
