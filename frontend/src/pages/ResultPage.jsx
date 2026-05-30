@@ -50,8 +50,23 @@ function EmberParticles() {
 }
  
 function PhaseAnnounce({ creature, imageUrl }) {
+  // Lock body scroll (prevents iOS bounce scroll too)
+  useEffect(() => {
+    const scrollY = window.scrollY
+    document.body.style.overflow = 'hidden'
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.top = ''
+      window.scrollTo(0, scrollY)
+    }
+  }, [])
+
   return (
-    <section className="relative min-h-dvh overflow-hidden flex flex-col items-center justify-center select-none">
+    <section className="relative overflow-hidden flex flex-col items-center justify-center select-none" style={{ minHeight: '100svh' }}>
       <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Cinzel+Decorative:wght@700&display=swap' />
       <style>{`
         @keyframes float-up {
@@ -222,6 +237,21 @@ function FilmGrain() {
  
 function PhaseFace({ imageUrl }) {
   const [step, setStep] = useState(0)
+  // Lock body scroll (prevents iOS bounce scroll too)
+  useEffect(() => {
+    const scrollY = window.scrollY
+    document.body.style.overflow = 'hidden'
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.top = ''
+      window.scrollTo(0, scrollY)
+    }
+  }, [])
+
  
   useEffect(() => {
     const t0 = setTimeout(() => { setStep(1); playFlashSound() }, 300)
@@ -233,7 +263,7 @@ function PhaseFace({ imageUrl }) {
  
   return (
     <section style={{
-      minHeight: '100dvh', background: '#000', overflow: 'hidden',
+      minHeight: '100svh', background: '#000', overflow: 'hidden',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       position: 'relative',
     }}>
@@ -387,6 +417,21 @@ function PhaseFace({ imageUrl }) {
    Phase 3 – Polaroid meme reveal
 ───────────────────────────────────────────────────────────────*/
 function PhaseMeme({ memeUrl, creature }) {
+  // Lock body scroll (prevents iOS bounce scroll too)
+  useEffect(() => {
+    const scrollY = window.scrollY
+    document.body.style.overflow = 'hidden'
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.top = ''
+      window.scrollTo(0, scrollY)
+    }
+  }, [])
+
   const [step, setStep] = useState(0)
  
   useEffect(() => {
@@ -398,7 +443,7 @@ function PhaseMeme({ memeUrl, creature }) {
  
   return (
     <section style={{
-      minHeight:'100dvh', background:'#111009', overflow:'hidden',
+      minHeight:'100svh', background:'#111009', overflow:'hidden',
       display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
       position:'relative',
     }}>
@@ -531,6 +576,24 @@ function getRarityGlow(rank) {
 }
 
 function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onScanAgain, onBackHome }) {
+  // Lock body scroll for this phase (also handles iOS Safari bounce scroll)
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    const prevPos = document.body.style.position
+    const prevTop = document.body.style.top
+    const scrollY = window.scrollY
+    document.body.style.overflow = 'hidden'
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
+    return () => {
+      document.body.style.overflow = prev
+      document.body.style.position = prevPos
+      document.body.style.top = prevTop
+      window.scrollTo(0, scrollY)
+    }
+  }, [])
+
   const animalProfile = getAnimalProfile(result)
   const score = result?.animal_score ?? result?.npc_score ?? 0
   const barRef = useRef(null)
@@ -558,7 +621,7 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
     { title: 'Aimlabs Victim',            sub: 'ซ้อม aim มาเป็นร้อยชั่วโมง สุดท้ายยังยิงกำแพงเก่งกว่าศัตรู',                        color: '#ff4444' },
     { title: 'Fake Talon Player',         sub: 'กดไวเหมือนคนเก่ง แต่พอดูจริงๆคือ panic click ล้วนๆ',                                color: '#ff4488' },
     { title: 'Human Delay 300ms',         sub: 'อินเทอร์เน็ตบ้านยังตอบสนองเร็วกว่ามือมึงอีก',                                       color: '#ff6600' },
-    { title: 'Bot Detected ',           sub: 'reaction ต่ำผิดมนุษย์ ขนาด AI ยังสงสาร social skill มึง',                           color: '#ff4444' },
+    { title: 'Bot Detected 🤖',           sub: 'reaction ต่ำผิดมนุษย์ ขนาด AI ยังสงสาร social skill มึง',                           color: '#ff4444' },
     { title: 'One Tap แต่ One Braincell', sub: 'ยิงเข้าเป้าก็จริง แต่ IQ gameplay ยังต่ำกว่า FPS ที่เล่น',                          color: '#ff4488' },
   ]
 
@@ -577,12 +640,8 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
     setRoastLoading(false)
   }, [])
 
-  // 🌟 helper แยก request รูปมีม
-  const getMemeUrlForIndex = (url, index) => {
-    if (!url || url.startsWith('data:')) return url;
-    const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}shot=${index}`;
-  };
+  // URLs are already blob: or data: — no need to add query strings
+  const getMemeUrlForIndex = (url, _index) => url || '';
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -692,34 +751,16 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
       setIsSaving(true);
       const canvas = await html2canvas(downloadCardRef.current, {
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
         backgroundColor: null,
         scale: 3,
         logging: false
       });
       const dataUrl = canvas.toDataURL('image/png');
-
-      // iOS Safari ไม่ support link.click() download → เปิด new tab แทน
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-      if (isIOS) {
-        const win = window.open();
-        if (win) {
-          win.document.write(`<img src="${dataUrl}" style="max-width:100%;display:block;margin:auto;" />`);
-          win.document.title = 'Long press image to save';
-        } else {
-          // popup blocked → fallback
-          const link = document.createElement('a');
-          link.href = dataUrl;
-          link.download = `b-main-${result.creature || 'result'}.png`;
-          link.click();
-        }
-      } else {
-        const link = document.createElement('a');
-        link.download = `b-main-${result.creature || 'result'}.png`;
-        link.href = dataUrl;
-        link.click();
-      }
+      const link = document.createElement('a');
+      link.download = `b-main-${result.creature || 'result'}.png`;
+      link.href = dataUrl;
+      link.click();
     } catch (error) {
       console.error('Failed to save image:', error);
       alert('ไม่สามารถบันทึกรูปภาพได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง');
@@ -730,17 +771,16 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
 
   return (
     <section style={{
-      minHeight: '100dvh',
+      minHeight: '100svh',
       backgroundImage: `linear-gradient(135deg, rgba(5, 5, 12, 0.94) 0%, rgba(10, 10, 22, 0.97) 100%), url(${end1Bg})`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
-      backgroundAttachment: 'scroll', // 'fixed' crashes on iOS Safari
+      backgroundAttachment: 'scroll',
       color: '#f8f6f2',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      overflowX: 'hidden',
-      overflowY: 'auto',
+      overflow: 'hidden',
       position: 'relative',
     }}>
       <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap' />
@@ -805,32 +845,14 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
           gap: 2rem;
         }
 
-        /* iPad portrait (768–1023px) */
-        @media (min-width: 768px) and (max-width: 1023px) {
-          .layout-container {
-            flex-direction: row;
-            align-items: flex-start;
-            padding: 2rem 2rem;
-            gap: 2.5rem;
-            flex-wrap: nowrap;
-          }
-          .col-left {
-            flex: 0 0 auto;
-          }
-          .col-right {
-            flex: 1;
-            min-width: 0;
-          }
-        }
-
-        @media (min-width: 1024px) {
+        @media (min-width: 768px) {
           .layout-container {
             flex-direction: row;
             justify-content: center;
-            height: 94dvh;
-            max-height: 780px;
-            gap: 4.5rem;
-            padding: 0;
+            align-items: center;
+            min-height: 94svh;
+            gap: clamp(2rem, 4vw, 4.5rem);
+            padding: 2rem 2rem;
           }
           .col-left {
             flex: 0 0 auto;
@@ -844,14 +866,24 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
             display: flex;
             flex-direction: column;
             justify-content: center;
+          }
+        }
+
+        @media (min-width: 1024px) {
+          .layout-container {
+            height: 94svh;
+            max-height: 780px;
+            padding: 0;
+          }
+          .col-right {
             height: 100%;
           }
         }
       `}</style>
 
       {/* พื้นหลัง glow */}
-      <div style={{ position: 'fixed', top: '-10%', right: '-10%', width: '50vw', height: '50vw', maxWidth: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(249,115,22,0.12) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
-      <div style={{ position: 'fixed', bottom: '-10%', left: '-10%', width: '40vw', height: '40vw', maxWidth: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '50vw', height: '50vw', maxWidth: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(249,115,22,0.12) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{ position: 'absolute', bottom: '-10%', left: '-10%', width: '40vw', height: '40vw', maxWidth: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
 
       {/* 🛑 [SECRET EXPORT ZONE] */}
       <div ref={downloadCardRef} style={{
@@ -909,16 +941,18 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
               {['grayscale(0.1) sepia(0.02)', 'none', 'grayscale(0.3) contrast(1.15)'].map((filter, i) => {
                 const userImgUrl = userPhotos[i];
                 const currentMemeUrl = matchedMemeUrls[i];
+                const isUserBase64 = userImgUrl?.startsWith('data:');
+                const isMemeBase64 = currentMemeUrl?.startsWith('data:');
                 return (
                   <div key={i} style={{ display: 'flex', gap: 'clamp(4px, 0.8vw, 6px)' }}>
                     <div style={{ flex: 1, aspectRatio: '1/1', overflow: 'hidden', background: '#d1d1d1' }}>
                       {userImgUrl
-                        ? <img src={userImgUrl} alt="You" className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter }} />
+                        ? <img src={userImgUrl} crossOrigin={isUserBase64 ? undefined : "anonymous"} alt="You" className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter }} />
                         : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: '#e5e5e5' }}>📸</div>}
                     </div>
                     <div style={{ flex: 1, aspectRatio: '1/1', overflow: 'hidden', background: '#d1d1d1' }}>
                       {currentMemeUrl
-                        ? <img src={getMemeUrlForIndex(currentMemeUrl, i)} alt={animalProfile.title} className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', filter }} />
+                        ? <img src={getMemeUrlForIndex(currentMemeUrl, i)} crossOrigin={isMemeBase64 ? undefined : "anonymous"} alt={animalProfile.title} className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', filter }} />
                         : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: '#e5e5e5' }}>🐾</div>}
                     </div>
                   </div>
@@ -1152,7 +1186,7 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
 
           <div className="r7" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             <button onClick={handleSaveImage} className="save-btn" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.88rem', fontWeight: 600, padding: '0.85rem', borderRadius: 12, cursor: isSaving ? 'not-allowed' : 'pointer', letterSpacing: '0.03em', textShadow: '0 1px 2px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-              {isSaving ? 'Generating...' : (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) ? 'Save image (long press to save)' : 'Save image'}
+              {isSaving ? 'Saving image...' : 'Save image'}
             </button>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
               <button onClick={onScanAgain} className="ghost-btn" style={{ fontFamily: "'DM Sans', sans-serif", background: 'transparent', border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.65)', fontSize: '0.82rem', padding: '0.8rem', borderRadius: 12, cursor: 'pointer', letterSpacing: '0.02em', fontWeight: 500 }}>Repeat Scan</button>
@@ -1176,14 +1210,19 @@ function ResultPage({ result, onScanAgain, onBackHome }) {
   useEffect(() => {
     if (!result) return
 
-    const processUrl = (url) => {
+    // Convert remote URL → blob: to avoid CORS + cache issues after deploy
+    const toBlobUrl = async (url) => {
       if (!url) return '';
-      if (url.startsWith('data:')) return url;
-      const separator = url.includes('?') ? '&' : '?';
-      return `${url}${separator}t=${Date.now()}`;
-    }
-
-    const scanImg = processUrl(result.scanImageUrl)
+      if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+      try {
+        const res = await fetch(url, { mode: 'cors', cache: 'no-store' });
+        if (!res.ok) return url;
+        const blob = await res.blob();
+        return URL.createObjectURL(blob);
+      } catch {
+        return url; // fallback on CORS error
+      }
+    };
 
     const fallbackPhoto = result.scanImageUrl || '';
     const rawPhotos = (result.jumpscarePhotos && result.jumpscarePhotos.length === 3)
@@ -1194,23 +1233,40 @@ function ResultPage({ result, onScanAgain, onBackHome }) {
         ]
       : [fallbackPhoto, fallbackPhoto, fallbackPhoto];
 
-    const photos = rawPhotos.map(p => processUrl(p));
-
     const fallbackMeme = result.matched_meme_url || '';
     const rawMemes = (result.matched_meme_urls && result.matched_meme_urls.length === 3)
       ? result.matched_meme_urls
       : [fallbackMeme, fallbackMeme, fallbackMeme];
 
-    const memes = rawMemes.map(m => processUrl(m));
+    let cancelled = false;
+    const blobUrls = [];
 
-    setProcessedUrls({ scanImg, photos, memes })
+    (async () => {
+      const [scanImg, p0, p1, p2, m0, m1, m2] = await Promise.all([
+        toBlobUrl(result.scanImageUrl),
+        toBlobUrl(rawPhotos[0]),
+        toBlobUrl(rawPhotos[1]),
+        toBlobUrl(rawPhotos[2]),
+        toBlobUrl(rawMemes[0]),
+        toBlobUrl(rawMemes[1]),
+        toBlobUrl(rawMemes[2]),
+      ]);
+      if (cancelled) return;
+      // track blob URLs for cleanup
+      [scanImg, p0, p1, p2, m0, m1, m2].forEach(u => { if (u.startsWith('blob:')) blobUrls.push(u); });
+      setProcessedUrls({ scanImg, photos: [p0, p1, p2], memes: [m0, m1, m2] });
+    })();
 
     const timings = [
       setTimeout(() => setPhase(2), 6000),
       setTimeout(() => setPhase(3), 9000),
       setTimeout(() => setPhase(4), 15000),
     ]
-    return () => timings.forEach(clearTimeout)
+    return () => {
+      cancelled = true;
+      timings.forEach(clearTimeout);
+      blobUrls.forEach(u => URL.revokeObjectURL(u));
+    }
   }, [result])
 
   if (!result) return null
