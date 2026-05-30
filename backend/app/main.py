@@ -32,10 +32,6 @@ app.include_router(leaderboard.router)
 app.include_router(analyze.router)
 app.include_router(clips.router)
 
-# 3. 🌟 เปลี่ยนจาก StaticFiles ตัวเดิม มาใช้ CORSStaticFiles ตัวใหม่ที่เราสร้างไว้ด้านบน
-app.mount("/memes", CORSStaticFiles(directory="app/memes"), name="memes")
+# 3. 🌟 ดึงรูปภาพมีมผ่าน Supabase Storage แทนแล้ว จึงลบบรรทัด /memes ออก
+# ส่วนโฟลเดอร์ /clips ยังคงปล่อยให้เซิร์ฟเวอร์จ่ายแบบ Local ไว้ตามเดิม
 app.mount("/clips", CORSStaticFiles(directory="app/clips"), name="clips")
-
-@app.get("/")
-def root():
-    return {"status": "ok"}

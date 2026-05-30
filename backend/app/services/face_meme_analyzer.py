@@ -238,7 +238,7 @@ def analyze_face_meme(image_bytes):
             "rarity": "Common",
             "animal_vibe": "same chaotic animal frequency",
             "matched_meme_name": default_meme.name,
-            "matched_meme_url": f"http://localhost:8002/memes/{encoded_path}",
+            "matched_meme_url": f"https://xsxvisvacsgikjwffirg.supabase.co/storage/v1/object/public/memes/{encoded_path}",
             "face_detected": False,
             "face_count": 0,
             "analysis_method": "mediapipe-face-mesh-rules",
