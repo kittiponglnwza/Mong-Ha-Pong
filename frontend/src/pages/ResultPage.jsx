@@ -888,7 +888,7 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
       {/* 🛑 [SECRET EXPORT ZONE] */}
       <div ref={downloadCardRef} style={{
         position: 'absolute', left: '-9999px', top: '-9999px',
-        background: 'linear-gradient(160deg, #ffffff 0%, #f7f3eb 100%)',
+        background: 'linear-gradient(160deg, #1a1612 0%, #0f0d0a 100%)',
         padding: '12px 12px 36px', display: 'flex', flexDirection: 'column',
         gap: '6px', width: '320px', boxSizing: 'border-box'
       }}>
@@ -901,12 +901,12 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
             <div key={i} style={{ display: 'flex', gap: '6px' }}>
               <div style={{ flex: 1, aspectRatio: '1/1', overflow: 'hidden', background: '#d1d1d1' }}>
                 {userImgUrl
-                  ? <img src={userImgUrl} crossOrigin={isUserBase64 ? undefined : "anonymous"} alt="You" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter }} />
+                  ? <img src={userImgUrl}  alt="You" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter }} />
                   : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: '#e5e5e5' }}>📸</div>}
               </div>
               <div style={{ flex: 1, aspectRatio: '1/1', overflow: 'hidden', background: '#d1d1d1' }}>
                 {currentMemeUrl
-                  ? <img src={getMemeUrlForIndex(currentMemeUrl, i)} crossOrigin={isMemeBase64 ? undefined : "anonymous"} alt={animalProfile.title} style={{ width: '100%', height: '100%', objectFit: 'cover', filter }} />
+                  ? <img src={getMemeUrlForIndex(currentMemeUrl, i)}  alt={animalProfile.title} style={{ width: '100%', height: '100%', objectFit: 'cover', filter }} />
                   : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: '#e5e5e5' }}>🐾</div>}
               </div>
             </div>
@@ -914,11 +914,11 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
         })}
         <div style={{ display: 'flex', gap: '6px', marginTop: 10 }}>
           {['YOU', 'MATCH'].map(l => (
-            <p key={l} style={{ flex: 1, textAlign: 'center', fontSize: '10px', color: '#777', fontFamily: 'monospace', letterSpacing: '0.15em', margin: 0, fontWeight: 'bold' }}>{l}</p>
+            <p key={l} style={{ flex: 1, textAlign: 'center', fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace', letterSpacing: '0.15em', margin: 0, fontWeight: 'bold' }}>{l}</p>
           ))}
         </div>
         <div style={{ position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8 }}>
-          {[...Array(3)].map((_, i) => <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(0,0,0,0.15)' }} />)}
+          {[...Array(3)].map((_, i) => <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.2)' }} />)}
         </div>
       </div>
 
@@ -928,10 +928,10 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.55rem', letterSpacing: '0.3em', color: 'rgba(249,115,22,0.6)', textTransform: 'uppercase', margin: 0, fontWeight: 500 }}>YOU ↔ MATCH</p>
             <div className="drift photo-card" id="download-photo-card" ref={photoCardRef} style={{
-              background: 'linear-gradient(160deg, #ffffff 0%, #f7f3eb 100%)',
+              background: 'linear-gradient(160deg, #1a1612 0%, #0f0d0a 100%)',
               padding: 'clamp(6px, 1.2vw, 12px) clamp(6px, 1.2vw, 12px) clamp(22px, 3.5vw, 32px)',
               display: 'flex', flexDirection: 'column', gap: 'clamp(4px, 0.8vw, 6px)',
-              boxShadow: '0 25px 70px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.9)',
+              boxShadow: '0 25px 70px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.08)',
               transform: 'rotate(-2deg)', width: 'clamp(250px, 23vw, 320px)', position: 'relative',
             }}>
               <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 2 }}>
@@ -947,12 +947,12 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
                   <div key={i} style={{ display: 'flex', gap: 'clamp(4px, 0.8vw, 6px)' }}>
                     <div style={{ flex: 1, aspectRatio: '1/1', overflow: 'hidden', background: '#d1d1d1' }}>
                       {userImgUrl
-                        ? <img src={userImgUrl} crossOrigin={isUserBase64 ? undefined : "anonymous"} alt="You" className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter }} />
+                        ? <img src={userImgUrl}  alt="You" className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter }} />
                         : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: '#e5e5e5' }}>📸</div>}
                     </div>
                     <div style={{ flex: 1, aspectRatio: '1/1', overflow: 'hidden', background: '#d1d1d1' }}>
                       {currentMemeUrl
-                        ? <img src={getMemeUrlForIndex(currentMemeUrl, i)} crossOrigin={isMemeBase64 ? undefined : "anonymous"} alt={animalProfile.title} className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', filter }} />
+                        ? <img src={getMemeUrlForIndex(currentMemeUrl, i)}  alt={animalProfile.title} className="photo-strip-img" style={{ width: '100%', height: '100%', objectFit: 'cover', filter }} />
                         : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: '#e5e5e5' }}>🐾</div>}
                     </div>
                   </div>
@@ -961,11 +961,11 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
 
               <div style={{ display: 'flex', gap: '6px', marginTop: 4 }}>
                 {['YOU', 'MATCH'].map(l => (
-                  <p key={l} style={{ flex: 1, textAlign: 'center', fontSize: '8px', color: '#777', fontFamily: 'monospace', letterSpacing: '0.15em', margin: 0, fontWeight: 'bold' }}>{l}</p>
+                  <p key={l} style={{ flex: 1, textAlign: 'center', fontSize: '8px', color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace', letterSpacing: '0.15em', margin: 0, fontWeight: 'bold' }}>{l}</p>
                 ))}
               </div>
               <div style={{ position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8 }}>
-                {[...Array(3)].map((_, i) => <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(0,0,0,0.15)' }} />)}
+                {[...Array(3)].map((_, i) => <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.2)' }} />)}
               </div>
             </div>
           </div>
@@ -1210,18 +1210,27 @@ function ResultPage({ result, onScanAgain, onBackHome }) {
   useEffect(() => {
     if (!result) return
 
-    // Convert remote URL → blob: to avoid CORS + cache issues after deploy
+    // Convert remote URL → blob: so <img> can render cross-origin images without taint
+    // Tries cors first (works when server sends CORS headers), then no-cors as fallback
     const toBlobUrl = async (url) => {
       if (!url) return '';
       if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+      // Try with CORS first
       try {
-        const res = await fetch(url, { mode: 'cors', cache: 'no-store' });
-        if (!res.ok) return url;
+        const res = await fetch(url, { mode: 'cors', cache: 'force-cache' });
+        if (res.ok) {
+          const blob = await res.blob();
+          return URL.createObjectURL(blob);
+        }
+      } catch {}
+      // Fallback: no-cors (opaque response — can still create blob for <img> display)
+      try {
+        const res = await fetch(url, { mode: 'no-cors', cache: 'force-cache' });
         const blob = await res.blob();
-        return URL.createObjectURL(blob);
-      } catch {
-        return url; // fallback on CORS error
-      }
+        if (blob.size > 0) return URL.createObjectURL(blob);
+      } catch {}
+      // Last resort: return original URL (img without crossOrigin attr will still display)
+      return url;
     };
 
     const fallbackPhoto = result.scanImageUrl || '';
