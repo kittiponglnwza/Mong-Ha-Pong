@@ -207,6 +207,14 @@ export default function HowToPlay({ onBegin, onBack }) {
           filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.9));
         }
 
+        /* iPad: full-width buttons in portrait */
+        @media (max-width: 639px) {
+          .btn-primary, .btn-secondary {
+            width: 100%;
+            text-align: center;
+          }
+        }
+
         .btn-secondary {
           clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
           background: rgba(255, 255, 255, 0.05);
@@ -232,7 +240,7 @@ export default function HowToPlay({ onBegin, onBack }) {
         }
       `}</style>
 
-      <div className="cinzel relative h-screen w-screen overflow-hidden flex flex-col">
+      <div className="cinzel relative flex flex-col" style={{ height: '100dvh', width: '100%', overflow: 'hidden' }}>
 
         {/* ── Animated background image ── */}
         <div
@@ -287,19 +295,19 @@ export default function HowToPlay({ onBegin, onBack }) {
         ))}
 
         {/* ── Content ── */}
-        <div className={`relative z-10 flex flex-col h-full px-16 py-12 fade-in${visible ? ' show' : ''}`}>
+        <div className={`relative z-10 flex flex-col flex-1 overflow-y-auto px-6 md:px-12 lg:px-16 py-8 md:py-12 fade-in${visible ? ' show' : ''}`}>
 
           <div className="flex-1 flex flex-col justify-center max-w-2xl">
             <p className="text-xs uppercase tracking-[0.3em] text-blue-400 mb-3">— How to play</p>
-            <h1 className="text-4xl font-semibold tracking-wide text-white mb-3 leading-tight">
+            <h1 className="text-2xl md:text-4xl font-semibold tracking-wide text-white mb-3 leading-tight">
               Reflex Calibration
             </h1>
-            <p className="text-sm text-gray-400 tracking-widest leading-loose mb-8">
+            <p className="text-xs md:text-sm text-gray-400 tracking-widest leading-loose mb-5 md:mb-8">
               Most players think they have good aim. This test exists to humble them.
             </p>
 
             <p className="text-xs uppercase tracking-[0.25em] text-blue-400 mb-4">Instructions</p>
-            <ul className="flex flex-col gap-2 mb-8">
+            <ul className="flex flex-col gap-1.5 md:gap-2 mb-5 md:mb-8">
               {instructions.map((item, i) => (
                 <li key={i} className="flex items-start gap-3 text-sm text-gray-300 tracking-wide leading-relaxed">
                   <span className="text-blue-400 mt-0.5 shrink-0">•</span>
@@ -328,15 +336,15 @@ export default function HowToPlay({ onBegin, onBack }) {
             )}
           </div>
 
-          <div className="flex gap-4 justify-end pb-2">
-            <button onClick={onBack} className="btn-secondary">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end pt-4 pb-2">
+            <button onClick={onBack} className="btn-secondary sm:w-auto w-full">
               ← Back
             </button>
-            <div className="btn-primary-wrap">
+            <div className="btn-primary-wrap sm:w-auto w-full">
               <button
                 onClick={onBegin}
                 disabled={camStatus !== 'Connected'}
-                className="btn-primary"
+                className="btn-primary w-full sm:w-auto"
               >
                  Start
               </button>

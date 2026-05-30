@@ -27,6 +27,8 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
 
   const hitSoundRef = useRef(null)
   const missSoundRef = useRef(null)
+  // [iPad Fix #1] iOS Safari บล็อกเสียงจนกว่า user จะ interact ครั้งแรก
+  const audioUnlockedRef = useRef(false)
 
   const photosRef = useRef({
     beginImg: null,
@@ -42,14 +44,33 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
     missSoundRef.current.volume = 0.8
   }, [])
 
+  // [iPad Fix #1] Unlock audio บน iOS/iPadOS — ต้อง play silent ครั้งแรกใน user gesture
+  const unlockAudio = () => {
+    if (audioUnlockedRef.current) return
+    audioUnlockedRef.current = true
+    ;[hitSoundRef.current, missSoundRef.current].forEach(audio => {
+      if (!audio) return
+      const savedVol = audio.volume
+      audio.volume = 0
+      audio.play()
+        .then(() => {
+          audio.pause()
+          audio.currentTime = 0
+          audio.volume = savedVol
+        })
+        .catch(() => {})
+    })
+  }
+
   const playSound = (type) => {
     try {
       if (type === 'hit' && hitSoundRef.current) {
         hitSoundRef.current.currentTime = 0
-        hitSoundRef.current.play()
+        // [iPad Fix #1] เพิ่ม .catch() เพื่อกัน unhandled promise rejection บน iOS
+        hitSoundRef.current.play().catch(() => {})
       } else if (type === 'miss' && missSoundRef.current) {
         missSoundRef.current.currentTime = 0
-        missSoundRef.current.play()
+        missSoundRef.current.play().catch(() => {})
       }
     } catch (e) { /* ignore audio errors */ }
   }
@@ -154,6 +175,7 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
       // รีเซ็ต position ก่อนเล่นเสมอ เพื่อป้องกันบัค browser cache ตำแหน่งเดิม
       video.pause()
       video.currentTime = 0
+      // [iPad Fix #2] เพิ่ม .catch() — iOS Safari อาจ reject ถ้า state ยังไม่พร้อม
       video.play().catch(e => console.error('video play error', e))
       playStartTimeRef.current = Date.now()
       setTimeout(() => {
@@ -202,6 +224,9 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
 
   // ✅ handleClick — แก้แล้ว: เพิ่ม late window หลัง peek
   const handleClick = () => {
+    // [iPad Fix #1] Unlock audio ทันทีที่ผู้ใช้ tap ครั้งแรก
+    unlockAudio()
+
     if (phase !== 'playing' || isJumpscare || hasClickedRef.current) return
     hasClickedRef.current = true
     videoRef.current?.pause()
@@ -304,7 +329,12 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
   const roastText = resultData ? getRoast(resultData.verdict, resultData.ms) : ''
 
   return (
-    <div style={{...styles.container, cursor: phase === 'playing' ? 'none' : 'default'}} onClick={handleClick}>
+    <div
+      style={{...styles.container, cursor: phase === 'playing' ? 'none' : 'default'}}
+      onClick={handleClick}
+      // [iPad Fix #1] Unlock audio ทันทีที่มี touch แรกบน iOS
+      onTouchStart={unlockAudio}
+    >
       <video ref={webcamRef} autoPlay playsInline muted style={styles.hiddenCam} />
 
       {/* HUD top bar */}
@@ -343,6 +373,9 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
           onEnded={handleVideoEnd}
           onTimeUpdate={handleTimeUpdate}
           playsInline
+          // [iPad Fix #2] iOS Safari บล็อก autoplay สำหรับ video ที่มีเสียง
+          // ต้องใส่ muted เพื่อให้ play() จาก useEffect ทำงานได้โดยไม่ต้องรอ user gesture
+          muted
         />
       )}
 
@@ -487,9 +520,22 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
 
 const styles = {
   container: {
-    position: 'relative', width: '100vw', height: '100vh',
-    background: '#000', display: 'flex', alignItems: 'center',
-    justifyContent: 'center', overflow: 'hidden', cursor: 'crosshair'
+    // [iPad Fix #3] ใช้ position fixed + inset แทน relative + 100vw/100vh
+    // Safari นับ 100vh รวม address bar ทำให้ layout เกินหน้าจอ
+    // fixed + inset: 0 ครอบคลุมพื้นที่จริงเสมอโดยไม่สนใจ browser chrome
+    position: 'fixed',
+    top: 0, left: 0, right: 0, bottom: 0,
+    background: '#000',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    cursor: 'crosshair',
+    // [iPad Fix #4] ลบ tap delay 300ms บน iOS Safari
+    touchAction: 'manipulation',
+    // [iPad Fix #5] กัน text selection เวลา tap ค้างบน iPad
+    userSelect: 'none',
+    WebkitUserSelect: 'none',
   },
   hiddenCam: { position: 'absolute', width: 1, height: 1, opacity: 0 },
 
@@ -498,7 +544,10 @@ const styles = {
     position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',
     display: 'flex', gap: 32, background: 'rgba(0,0,0,0.6)',
     border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8,
-    padding: '8px 24px', zIndex: 30, backdropFilter: 'blur(6px)'
+    padding: '8px 24px', zIndex: 30,
+    backdropFilter: 'blur(6px)',
+    // [iPad Fix #6] Safari ต้องการ -webkit- prefix สำหรับ backdropFilter
+    WebkitBackdropFilter: 'blur(6px)',
   },
   hudItem: { display: 'flex', flexDirection: 'column', alignItems: 'center' },
   hudLabel: { fontSize: 10, color: '#888', letterSpacing: 2, fontFamily: 'monospace', textTransform: 'uppercase' },
@@ -515,9 +564,11 @@ const styles = {
     alignItems: 'center', justifyContent: 'center',
     pointerEvents: 'none', zIndex: 10
   },
+  // [iPad Fix] ขยาย touch target เป็น 60x60 (Apple HIG แนะนำ min 44x44)
   crosshairCenter: {
-    position: 'relative', width: 32, height: 32,
-    pointerEvents: 'all', cursor: 'crosshair'
+    position: 'relative', width: 60, height: 60,
+    pointerEvents: 'all', cursor: 'crosshair',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
   chTop: {
     position: 'absolute', left: '50%', top: 0,
@@ -555,10 +606,17 @@ const styles = {
     position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.82)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     zIndex: 20,
+    // [iPad Fix] ให้ scroll ได้ถ้า content ยาวเกิน (iPad portrait)
+    overflowY: 'auto',
   },
   resultCard: {
     display: 'flex', flexDirection: 'column', alignItems: 'center',
     gap: 16, maxWidth: 480, width: '90%', textAlign: 'center',
+    // [iPad Fix] กัน card ล้นหน้าจอตอน portrait + keyboard pop up
+    maxHeight: '85vh',
+    overflowY: 'auto',
+    paddingTop: 16,
+    paddingBottom: 16,
   },
   reactionPhoto: {
     width: 180, height: 180, objectFit: 'cover',
@@ -597,6 +655,8 @@ const styles = {
     padding: '10px 26px', background: '#00ff88', border: 'none',
     borderRadius: 8, fontSize: 15, cursor: 'pointer', fontWeight: 'bold',
     fontFamily: 'monospace', color: '#000', letterSpacing: 1,
+    // [iPad Fix] ปุ่มต้องใหญ่พอสำหรับนิ้ว (min 44px height)
+    minHeight: 44,
   },
   statPanel: {
     width: '100%', background: 'rgba(255,255,255,0.05)',
