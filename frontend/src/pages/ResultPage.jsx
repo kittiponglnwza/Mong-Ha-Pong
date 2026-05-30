@@ -1055,6 +1055,22 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
                   )}
                 </div>
 
+                {bestReflex !== null && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginBottom: '0.2rem' }}>
+                    <span style={{
+                      alignSelf: 'flex-start',
+                      fontFamily: "'DM Sans', sans-serif", fontSize: '0.58rem', fontWeight: 700,
+                      color: '#ff4444', border: '1px solid rgba(220,38,38,0.6)',
+                      background: 'rgba(220,38,38,0.12)', padding: '2px 10px',
+                      borderRadius: 4, letterSpacing: '0.12em', textTransform: 'uppercase',
+                      boxShadow: '0 0 8px rgba(220,38,38,0.25)',
+                    }}>INSANE ⚡</span>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.15rem' }}>
+                      <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(2rem, 4vw, 2.6rem)', fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 0 20px rgba(255,255,255,0.2)' }}>{bestReflex}</span>
+                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)', fontWeight: 400 }}>ms</span>
+                    </div>
+                  </div>
+                )}
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                   {avgReflex !== null && (
                     <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '0.62rem', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.03)', padding: '3px 12px', borderRadius: 99, letterSpacing: '0.02em' }}>
@@ -1072,15 +1088,25 @@ function PhaseResult({ result, userPhotos, matchedMemeUrls, reflexData = [], onS
                 </div>
 
                 {/* mini bar chart */}
-                <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end', height: 24 }}>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', height: 56, marginTop: '0.2rem' }}>
                   {reflexData.map((r, i) => {
                     const maxMs = Math.max(...reflexData.filter(x => x.ms).map(x => x.ms), 500)
-                    const h = r.ms ? Math.max(3, Math.round((r.ms / maxMs) * 20)) : 3
-                    const color = r.verdict === 'perfect' ? 'rgba(249,115,22,0.7)' : r.verdict === 'early' ? 'rgba(245,158,11,0.5)' : 'rgba(255,255,255,0.15)'
+                    const isMiss = r.verdict !== 'perfect' && r.verdict !== 'early'
+                    const h = isMiss ? 10 : r.ms ? Math.max(6, Math.round((r.ms / maxMs) * 44)) : 6
+                    const color = r.verdict === 'perfect'
+                      ? 'rgba(34,197,94,0.85)'
+                      : r.verdict === 'early'
+                        ? 'rgba(245,158,11,0.7)'
+                        : 'rgba(239,68,68,0.85)'
+                    const glow = r.verdict === 'perfect'
+                      ? '0 0 6px rgba(34,197,94,0.5)'
+                      : r.verdict === 'early'
+                        ? '0 0 6px rgba(245,158,11,0.4)'
+                        : '0 0 6px rgba(239,68,68,0.5)'
                     return (
-                      <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                        <div style={{ width: 12, height: h, borderRadius: 2, background: color }} />
-                        <span style={{ fontFamily: 'monospace', fontSize: '0.42rem', color: 'rgba(255,255,255,0.18)', letterSpacing: '0.05em' }}>R{r.round}</span>
+                      <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flex: 1 }}>
+                        <div style={{ width: '100%', minWidth: 10, height: h, borderRadius: 3, background: color, boxShadow: glow }} />
+                        <span style={{ fontFamily: 'monospace', fontSize: '0.45rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.04em' }}>R{r.round}</span>
                       </div>
                     )
                   })}
