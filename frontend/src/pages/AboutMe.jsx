@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import bgImage from '../assets/logo.jpg';
 import MeImage from '../assets/me.png';
 import backImage from '../assets/back.jpg';
+import bgMusic from '../assets/music.mp3';
 
 const skillData = {
   info: {
     title: 'ELITE PROFILE',
-    desc: 'I don’t build pages. I design controlled cinematic systems—interfaces engineered for presence, precision, and identity. Every detail is tuned like a tactical command layer where motion, hierarchy, and atmosphere work as one unified experience.'
+    desc: 'I dont build pages. I design controlled cinematic systems—interfaces engineered for presence, precision, and identity. Every detail is tuned like a tactical command layer where motion, hierarchy, and atmosphere work as one unified experience.'
   },
   C: {
     title: 'CREATIVE UI DIRECTION',
@@ -32,6 +33,45 @@ export default function ValorantAgentSelect({ onBack, onPlay }) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [particles, setParticles] = useState([]);
   const [activePanel, setActivePanel] = useState('info');
+  const [isMuted, setIsMuted] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
+
+  // Init audio once
+  useEffect(() => {
+    const audio = new Audio(bgMusic);
+    audio.loop = true;
+    audio.volume = 0.01;
+    audioRef.current = audio;
+
+    audio.play()
+      .then(() => setIsPlaying(true))
+      .catch(() => {
+        // Autoplay blocked — user must click first
+        console.log('Autoplay blocked by browser');
+      });
+
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+    };
+  }, []);
+
+  const toggleMute = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (!isPlaying) {
+      // First click after autoplay block — start playing
+      audio.play().then(() => {
+        setIsPlaying(true);
+        setIsMuted(false);
+      });
+    } else {
+      audio.muted = !audio.muted;
+      setIsMuted(audio.muted);
+    }
+  };
 
   useEffect(() => {
     const generatedParticles = Array.from({ length: 28 }).map((_, i) => ({
@@ -78,6 +118,11 @@ export default function ValorantAgentSelect({ onBack, onPlay }) {
           50% { opacity: 1; box-shadow: 0 0 18px rgba(34,197,94,.9); }
         }
 
+        @keyframes pulseCyan {
+          0%, 100% { opacity: .5; box-shadow: 0 0 6px rgba(0,217,255,.4); }
+          50% { opacity: 1; box-shadow: 0 0 14px rgba(0,217,255,.9); }
+        }
+
         .scanline-overlay {
           position: absolute;
           inset: 0;
@@ -118,6 +163,41 @@ export default function ValorantAgentSelect({ onBack, onPlay }) {
         className="absolute top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 text-xs font-bold tracking-[0.3em] uppercase text-slate-400 hover:text-cyan-300 transition-all duration-200 border border-white/10 hover:border-cyan-400/40 bg-black/40 hover:bg-cyan-400/5 backdrop-blur-sm skew-x-[-8deg]"
       >
         <span className="skew-x-[8deg]">← BACK</span>
+      </button>
+
+      {/* Music Toggle Button Top-Right */}
+      <button
+        onClick={toggleMute}
+        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 text-xs font-bold tracking-[0.3em] uppercase transition-all duration-200 border bg-black/40 backdrop-blur-sm skew-x-[-8deg]"
+        style={{
+          color: isMuted || !isPlaying ? 'rgba(148,163,184,1)' : 'rgba(0,217,255,1)',
+          borderColor: isMuted || !isPlaying ? 'rgba(255,255,255,0.1)' : 'rgba(0,217,255,0.4)',
+          background: isMuted || !isPlaying ? 'rgba(0,0,0,0.4)' : 'rgba(0,217,255,0.05)',
+        }}
+      >
+        <span className="skew-x-[8deg] flex items-center gap-2">
+          {/* Speaker icon */}
+          {isMuted || !isPlaying ? (
+            // Muted icon
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M13 3L7 8H3v8h4l6 5V3zM17.27 7.73a1 1 0 0 0-1.41 1.41A3.98 3.98 0 0 1 17 12a3.98 3.98 0 0 1-1.14 2.86 1 1 0 1 0 1.41 1.41A5.97 5.97 0 0 0 19 12a5.97 5.97 0 0 0-1.73-4.27z"/>
+              <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" strokeWidth="2"/>
+            </svg>
+          ) : (
+            // Sound icon
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M13 3L7 8H3v8h4l6 5V3zM17.27 7.73a1 1 0 0 0-1.41 1.41A3.98 3.98 0 0 1 17 12a3.98 3.98 0 0 1-1.14 2.86 1 1 0 1 0 1.41 1.41A5.97 5.97 0 0 0 19 12a5.97 5.97 0 0 0-1.73-4.27zM20.54 4.46a1 1 0 0 0-1.41 1.41A7.97 7.97 0 0 1 21 12a7.97 7.97 0 0 1-1.87 5.13 1 1 0 1 0 1.41 1.41A9.97 9.97 0 0 0 23 12a9.97 9.97 0 0 0-2.46-6.54z"/>
+            </svg>
+          )}
+          {!isPlaying ? 'CLICK TO PLAY' : isMuted ? 'UNMUTE' : 'MUTE'}
+          {/* Live dot when playing */}
+          {isPlaying && !isMuted && (
+            <span
+              className="w-1.5 h-1.5 rounded-full bg-cyan-400"
+              style={{ animation: 'pulseCyan 1.2s ease-in-out infinite' }}
+            />
+          )}
+        </span>
       </button>
 
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -237,7 +317,7 @@ export default function ValorantAgentSelect({ onBack, onPlay }) {
         >
           <div className="mb-6 pl-4 text-right lg:text-left">
             <p className="text-xs font-bold text-cyan-300 tracking-[0.35em] uppercase drop-shadow-md mb-1">
-              FRONTEND ARCHITECT
+              FULL STACK DEVELOPER
             </p>
             <h1 className="text-[78px] lg:text-[92px] font-black italic text-[#ece8e1] leading-[0.85] tracking-[-0.04em] txt-stroke">
               TOPZ
@@ -290,7 +370,7 @@ export default function ValorantAgentSelect({ onBack, onPlay }) {
               DARK SYSTEMS - ERROR 404
             </div>
             <div className="text-slate-300 text-xs mt-2">
-              “Don’t let me wake up—I’ll kill everything clean.”
+              "Don't let me wake up—I'll kill everything clean."
             </div>
           </div>
         </div>
@@ -308,15 +388,13 @@ export default function ValorantAgentSelect({ onBack, onPlay }) {
             className={`w-full py-3 text-lg font-black italic tracking-[0.35em] uppercase transition-all duration-300 border-b-2 border-black/30 skew-x-[-10deg] ${
               lockedIn
                 ? 'bg-slate-200 text-slate-700 cursor-default'
-                : 'bg-[#ff4655] hover:bg-[#ff5f6f] text-white shadow-[0_0_24px_rgba(255,70,85,0.45)]'  
+                : 'bg-[#ff4655] hover:bg-[#ff5f6f] text-white shadow-[0_0_24px_rgba(255,70,85,0.45)]'
             }`}
           >
             <div className="skew-x-[10deg]">
               {lockedIn ? 'LOCKED IN' : 'LOCK IN'}
             </div>
           </button>
-
-          
 
           <div className="mt-4 flex flex-col items-center bg-black/70 backdrop-blur-md p-2.5 w-40 border border-white/10 shadow-2xl rounded-sm glow-cyan">
             <div className="w-full aspect-square bg-[#0c1826] relative mb-1.5 overflow-hidden border border-cyan-500/20">
