@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 
-const API = 'https://mong-ha-pong.onrender.com' // เปลี่ยนเป็น URL จริงของ backend
+const API = 'https://mong-ha-pong.onrender.com'
 const JUMPSCARE_ROUND = 14
 
 export default function ChallengePage({ onDone, onJumpscare, onBack }) {
@@ -12,6 +12,7 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
   const [reflexMs, setReflexMs] = useState(null)
   const [allReflexTimes, setAllReflexTimes] = useState([])
   const [resultImg, setResultImg] = useState(null)
+  const [cameraEnabled, setCameraEnabled] = useState(true)
 
   const videoRef = useRef(null)
   const webcamRef = useRef(null)
@@ -27,7 +28,6 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
 
   const hitSoundRef = useRef(null)
   const missSoundRef = useRef(null)
-  // [iPad Fix #1] iOS Safari บล็อกเสียงจนกว่า user จะ interact ครั้งแรก
   const audioUnlockedRef = useRef(false)
 
   const photosRef = useRef({
@@ -36,7 +36,6 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
     jumpscareImg: null,
   })
 
-  // --- โหลดเสียง ---
   useEffect(() => {
     hitSoundRef.current = new Audio('/sounds/hit.mp3')
     missSoundRef.current = new Audio('/sounds/shoot.mp3')
@@ -44,8 +43,6 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
     missSoundRef.current.volume = 0.8
   }, [])
 
-  // [iPad Fix #1] Unlock audio บน iOS/iPadOS — ต้อง play silent ครั้งแรกใน user gesture
-  // ✅ FIX: unmute video ด้วยทันทีที่ unlock เพื่อให้ jumpscare มีเสียง
   const unlockAudio = () => {
     if (audioUnlockedRef.current) return
     audioUnlockedRef.current = true
@@ -61,7 +58,6 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
         })
         .catch(() => {})
     })
-    // ✅ FIX: unmute video ทันทีที่ user interact — ให้ jumpscare มีเสียง
     if (videoRef.current) videoRef.current.muted = false
   }
 
@@ -69,7 +65,6 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
     try {
       if (type === 'hit' && hitSoundRef.current) {
         hitSoundRef.current.currentTime = 0
-        // [iPad Fix #1] เพิ่ม .catch() เพื่อกัน unhandled promise rejection บน iOS
         hitSoundRef.current.play().catch(() => {})
       } else if (type === 'miss' && missSoundRef.current) {
         missSoundRef.current.currentTime = 0
@@ -92,7 +87,6 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
     return buf.length > 0 ? buf[buf.length - 1].dataUrl : null
   }
 
-  // --- จบเกม ---
   const finishGame = () => {
     const finalPhotos = [
       photosRef.current.beginImg || getLatestFrame(),
@@ -102,12 +96,16 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
     onJumpscare(finalPhotos, allReflexTimes)
   }
 
-  // 🎥 เปิดกล้อง + buffer loop
+  // 🎥 เปิดกล้อง + buffer loop — re-run เมื่อ cameraEnabled เปลี่ยน
   useEffect(() => {
+    if (!cameraEnabled) return
+    let stream = null
+
     navigator.mediaDevices
       .getUserMedia({ video: { facingMode: 'user' } })
-      .then(stream => {
-        if (webcamRef.current) webcamRef.current.srcObject = stream
+      .then(s => {
+        stream = s
+        if (webcamRef.current) webcamRef.current.srcObject = s
         captureLoopRef.current = setInterval(() => {
           const webcam = webcamRef.current
           if (!webcam || webcam.videoWidth === 0) return
@@ -119,13 +117,18 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
           frameBufferRef.current = [...frameBufferRef.current.slice(-19), frame]
         }, 200)
       })
-      .catch(err => console.error('webcam error', err))
+      .catch(err => {
+        console.error('webcam error', err)
+        setCameraEnabled(false) // auto-disable ถ้า permission denied
+      })
 
     return () => {
-      webcamRef.current?.srcObject?.getTracks().forEach(t => t.stop())
+      stream?.getTracks().forEach(t => t.stop())
+      if (webcamRef.current) webcamRef.current.srcObject = null
       clearInterval(captureLoopRef.current)
+      frameBufferRef.current = []
     }
-  }, [])
+  }, [cameraEnabled])
 
   const loadClip = () => {
     roundRef.current += 1
@@ -162,7 +165,6 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
     loadClip()
   }, [])
 
-  // ⏳ countdown
   useEffect(() => {
     if (phase !== 'countdown') return
     if (countdown === 0) { setPhase('playing'); return }
@@ -170,17 +172,13 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
     return () => clearTimeout(t)
   }, [phase, countdown])
 
-  // 🎬 เริ่มเล่น
   useEffect(() => {
     if (phase === 'playing') {
       const video = videoRef.current
       if (!video) return
-      // รีเซ็ต position ก่อนเล่นเสมอ เพื่อป้องกันบัค browser cache ตำแหน่งเดิม
       video.pause()
       video.currentTime = 0
-      // ✅ FIX: ถ้า user เคย interact แล้ว ให้ unmute ก่อนเล่น (ครอบคลุมรอบถัดๆ ไปด้วย)
       if (audioUnlockedRef.current) video.muted = false
-      // [iPad Fix #2] เพิ่ม .catch() — iOS Safari อาจ reject ถ้า state ยังไม่พร้อม
       video.play().catch(e => console.error('video play error', e))
       playStartTimeRef.current = Date.now()
       setTimeout(() => {
@@ -227,9 +225,7 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
     }
   }
 
-  // ✅ handleClick — แก้แล้ว: เพิ่ม late window หลัง peek
   const handleClick = () => {
-    // [iPad Fix #1] Unlock audio ทันทีที่ผู้ใช้ tap ครั้งแรก
     unlockAudio()
 
     if (phase !== 'playing' || isJumpscare || hasClickedRef.current) return
@@ -238,30 +234,27 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
     photosRef.current.tooLateImg = getLatestFrame()
 
     const peekStarted = peekStartTimeRef.current !== null
-    let verdict = 'early' // default
+    let verdict = 'early'
 
     if (!peekStarted) {
-      // กดก่อน peek โผล่เลย — too early
       playSound('miss')
       const ms = playStartTimeRef.current ? Date.now() - playStartTimeRef.current : 0
       setReflexMs(null)
       setAllReflexTimes(prev => [...prev, { round: roundRef.current, ms, verdict: 'early' }])
       setResultData({ verdict: 'early', ms: null })
     } else {
-      // กดหลัง peek โผล่ — คำนวณ reflex จากตอน peek จริงๆ
       const reflexAfterPeek = Date.now() - peekStartTimeRef.current
-      verdict = reflexAfterPeek <= 100 ? 'perfect' : 'late' // ✅ เช็ค window 100ms
+      verdict = reflexAfterPeek <= 100 ? 'perfect' : 'late'
       playSound(verdict === 'perfect' ? 'hit' : 'miss')
       setReflexMs(reflexAfterPeek)
       setAllReflexTimes(prev => [...prev, { round: roundRef.current, ms: reflexAfterPeek, verdict }])
       setResultData({ verdict, ms: reflexAfterPeek })
     }
 
-    fetchResultImg(verdict) // ✅ ใช้ verdict เดียวกัน ไม่ต้องเช็ค peekStarted แยก
+    fetchResultImg(verdict)
     setPhase('result')
   }
 
-  // --- rating ตาม reflex ---
   const getReflexRating = (ms) => {
     if (ms === null) return { label: '—', color: '#888' }
     if (ms < 200) return { label: 'INSANE ⚡', color: '#ff4444' }
@@ -278,7 +271,6 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
   const currentRound = roundRef.current
   const totalRounds = JUMPSCARE_ROUND
 
-  // 💬 คำด่า/อวย ตาม verdict + rating
   const getRoast = (verdict, ms) => {
     if (verdict === 'early') return [
       'คนอยู่ดีไหนวะกูยังไม่เห็นเลย',
@@ -337,7 +329,6 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
     <div
       style={{...styles.container, cursor: phase === 'playing' ? 'none' : 'default'}}
       onClick={handleClick}
-      // [iPad Fix #1] Unlock audio ทันทีที่มี touch แรกบน iOS
       onTouchStart={unlockAudio}
     >
       <video ref={webcamRef} autoPlay playsInline muted style={styles.hiddenCam} />
@@ -356,6 +347,22 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
           <span style={styles.hudLabel}>LAST</span>
           <span style={styles.hudValue}>{reflexMs !== null ? `${reflexMs}ms` : '—'}</span>
         </div>
+        {/* ปุ่ม toggle กล้อง */}
+        <button
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: 18,
+            padding: '0 4px',
+            opacity: cameraEnabled ? 1 : 0.4,
+            lineHeight: 1,
+          }}
+          onClick={e => { e.stopPropagation(); setCameraEnabled(v => !v) }}
+          title={cameraEnabled ? 'ปิดกล้อง' : 'เปิดกล้อง'}
+        >
+          📷
+        </button>
       </div>
 
       {phase === 'loading' && (
@@ -378,13 +385,10 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
           onEnded={handleVideoEnd}
           onTimeUpdate={handleTimeUpdate}
           playsInline
-          // [iPad Fix #2] iOS Safari บล็อก autoplay สำหรับ video ที่มีเสียง
-          // ต้องใส่ muted เริ่มต้น — แล้วค่อย unmute ใน unlockAudio() หลัง user gesture
           muted
         />
       )}
 
-      {/* 🎯 Crosshair กลางจอ — แสดงเฉพาะตอน playing */}
       {phase === 'playing' && !isJumpscare && (
         <div style={styles.crosshairWrap} onClick={e => e.stopPropagation()}>
           <div style={styles.crosshairCenter} onClick={handleClick}>
@@ -397,7 +401,6 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
         </div>
       )}
 
-      {/* 📊 RESULT */}
       {phase === 'result' && resultData && (
         <div style={styles.resultOverlay} onClick={e => e.stopPropagation()}>
           <div style={styles.resultCard}>
@@ -423,7 +426,6 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
 
             <p style={styles.roastText}>"{roastText}"</p>
 
-            {/* reflex time — แสดงเฉพาะตอน perfect */}
             {resultData.verdict === 'perfect' && resultData.ms != null && (
               <div style={styles.reflexRow}>
                 <span style={styles.reflexMs}>{resultData.ms}</span>
@@ -442,7 +444,6 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
               </div>
             )}
 
-            {/* reflex time — แสดงตอน late ด้วย */}
             {resultData.verdict === 'late' && resultData.ms != null && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
                 <span style={{ ...styles.reflexBadge, background: 'rgba(255,68,68,0.15)', color: '#ff4444' }}>
@@ -467,7 +468,6 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
               )}
             </div>
 
-            {/* STAT panel */}
             {showStat && (
               <div style={styles.statPanel}>
                 <div style={styles.statGrid}>
@@ -525,9 +525,6 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
 
 const styles = {
   container: {
-    // [iPad Fix #3] ใช้ position fixed + inset แทน relative + 100vw/100vh
-    // Safari นับ 100vh รวม address bar ทำให้ layout เกินหน้าจอ
-    // fixed + inset: 0 ครอบคลุมพื้นที่จริงเสมอโดยไม่สนใจ browser chrome
     position: 'fixed',
     top: 0, left: 0, right: 0, bottom: 0,
     background: '#000',
@@ -536,40 +533,32 @@ const styles = {
     justifyContent: 'center',
     overflow: 'hidden',
     cursor: 'crosshair',
-    // [iPad Fix #4] ลบ tap delay 300ms บน iOS Safari
     touchAction: 'manipulation',
-    // [iPad Fix #5] กัน text selection เวลา tap ค้างบน iPad
     userSelect: 'none',
     WebkitUserSelect: 'none',
   },
   hiddenCam: { position: 'absolute', width: 1, height: 1, opacity: 0 },
-
-  // HUD
   hud: {
     position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',
     display: 'flex', gap: 32, background: 'rgba(0,0,0,0.6)',
     border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8,
     padding: '8px 24px', zIndex: 30,
     backdropFilter: 'blur(6px)',
-    // [iPad Fix #6] Safari ต้องการ -webkit- prefix สำหรับ backdropFilter
     WebkitBackdropFilter: 'blur(6px)',
+    alignItems: 'center',
   },
   hudItem: { display: 'flex', flexDirection: 'column', alignItems: 'center' },
   hudLabel: { fontSize: 10, color: '#888', letterSpacing: 2, fontFamily: 'monospace', textTransform: 'uppercase' },
   hudValue: { fontSize: 18, color: '#fff', fontWeight: 'bold', fontFamily: 'monospace' },
-
   overlay: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' },
   bigText: { color: '#fff', fontSize: 32 },
   countdownText: { color: '#fff', fontSize: 120, fontWeight: 'bold', fontFamily: 'monospace' },
   video: { width: '100%', height: '100%', objectFit: 'contain' },
-
-  // 🎯 Crosshair
   crosshairWrap: {
     position: 'absolute', inset: 0, display: 'flex',
     alignItems: 'center', justifyContent: 'center',
     pointerEvents: 'none', zIndex: 10
   },
-  // [iPad Fix] ขยาย touch target เป็น 60x60 (Apple HIG แนะนำ min 44x44)
   crosshairCenter: {
     position: 'relative', width: 60, height: 60,
     pointerEvents: 'all', cursor: 'crosshair',
@@ -605,19 +594,15 @@ const styles = {
     width: 3, height: 3, background: '#fff',
     borderRadius: '50%'
   },
-
-  // Result
   resultOverlay: {
     position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.82)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     zIndex: 20,
-    // [iPad Fix] ให้ scroll ได้ถ้า content ยาวเกิน (iPad portrait)
     overflowY: 'auto',
   },
   resultCard: {
     display: 'flex', flexDirection: 'column', alignItems: 'center',
     gap: 16, maxWidth: 480, width: '90%', textAlign: 'center',
-    // [iPad Fix] กัน card ล้นหน้าจอตอน portrait + keyboard pop up
     maxHeight: '85vh',
     overflowY: 'auto',
     paddingTop: 16,
@@ -651,16 +636,10 @@ const styles = {
     padding: '4px 12px', borderRadius: 6, letterSpacing: 1,
   },
   btnRow: { display: 'flex', gap: 10, marginTop: 4 },
-  btnStat: {
-    padding: '10px 22px', background: 'rgba(255,255,255,0.08)',
-    border: '1px solid rgba(255,255,255,0.2)', borderRadius: 8,
-    fontSize: 14, cursor: 'pointer', color: '#fff', fontFamily: 'monospace',
-  },
   btn: {
     padding: '10px 26px', background: '#00ff88', border: 'none',
     borderRadius: 8, fontSize: 15, cursor: 'pointer', fontWeight: 'bold',
     fontFamily: 'monospace', color: '#000', letterSpacing: 1,
-    // [iPad Fix] ปุ่มต้องใหญ่พอสำหรับนิ้ว (min 44px height)
     minHeight: 44,
   },
   statPanel: {
