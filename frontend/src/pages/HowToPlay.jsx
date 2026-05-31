@@ -331,7 +331,7 @@ export default function HowToPlay({ onBegin, onBack }) {
 
             {camStatus === 'Denied' && (
               <p className="mt-4 text-xs text-red-400 tracking-wide leading-relaxed">
-                Camera access was denied. Please allow camera permission in your browser settings and reload.
+                Camera disabled — reaction photos won't be captured. You can still play.
               </p>
             )}
           </div>
@@ -343,7 +343,7 @@ export default function HowToPlay({ onBegin, onBack }) {
             <div className="btn-primary-wrap sm:w-auto w-full">
               <button
                 onClick={onBegin}
-                disabled={camStatus !== 'Connected'}
+                disabled={false}
                 className="btn-primary w-full sm:w-auto"
               >
                  Start
