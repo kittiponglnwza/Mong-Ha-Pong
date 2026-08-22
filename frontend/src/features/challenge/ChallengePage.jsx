@@ -4,7 +4,7 @@ const API = 'https://mong-ha-pong.onrender.com' // เปลี่ยนเป�
 
 // 👻 Jumpscare สุ่มรอบ — ไม่บอกผู้เล่นว่ามาตอนไหน
 const JUMPSCARE_MIN = 5   // เร็วสุดที่ผีจะมา (รอบที่ 5)
-const JUMPSCARE_MAX = 8   // ช้าสุดที่ผีจะมา (รอบที่ 8)
+const JUMPSCARE_MAX = 7  // ช้าสุดที่ผีจะมา (รอบที่ 14)
 function pickJumpscareRound() {
   return JUMPSCARE_MIN + Math.floor(Math.random() * (JUMPSCARE_MAX - JUMPSCARE_MIN + 1))
 }
