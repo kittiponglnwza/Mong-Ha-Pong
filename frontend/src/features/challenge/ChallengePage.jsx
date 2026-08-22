@@ -1,7 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 
 const API = 'https://mong-ha-pong.onrender.com' // เปลี่ยนเป็น URL จริงของ backend
-const JUMPSCARE_ROUND = 14
+
+// 👻 Jumpscare สุ่มรอบ — ไม่บอกผู้เล่นว่ามาตอนไหน
+const JUMPSCARE_MIN = 5   // เร็วสุดที่ผีจะมา (รอบที่ 5)
+const JUMPSCARE_MAX = 8   // ช้าสุดที่ผีจะมา (รอบที่ 8)
+function pickJumpscareRound() {
+  return JUMPSCARE_MIN + Math.floor(Math.random() * (JUMPSCARE_MAX - JUMPSCARE_MIN + 1))
+}
 
 export default function ChallengePage({ onDone, onJumpscare, onBack }) {
   const [phase, setPhase] = useState('loading')
@@ -18,6 +24,7 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
   const hasClickedRef = useRef(false)
   const peekTimeRef = useRef(null)
   const roundRef = useRef(0)
+  const jumpscareRoundRef = useRef(pickJumpscareRound()) // 👻 สุ่มรอบผีแต่ละเกม
   const capturedRef = useRef(false)
   const playStartTimeRef = useRef(null)
   const peekStartTimeRef = useRef(null)
@@ -129,7 +136,7 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
 
   const loadClip = () => {
     roundRef.current += 1
-    const isJump = roundRef.current >= JUMPSCARE_ROUND
+    const isJump = roundRef.current >= jumpscareRoundRef.current
     setIsJumpscare(isJump)
     setPhase('loading')
     setCountdown(3)
@@ -276,7 +283,7 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
     : null
 
   const currentRound = roundRef.current
-  const totalRounds = JUMPSCARE_ROUND
+  const totalRounds = '??' // 👻 ไม่บอกว่าผีมารอบไหน ให้ลุ้น
 
   // 💬 คำด่า/อวย ตาม verdict + rating
   const getRoast = (verdict, ms) => {
@@ -456,7 +463,7 @@ export default function ChallengePage({ onDone, onJumpscare, onBack }) {
             )}
 
             <div style={styles.btnRow}>
-              {roundRef.current < JUMPSCARE_ROUND ? (
+              {roundRef.current < jumpscareRoundRef.current ? (
                 <button style={styles.btn} onClick={e => { e.stopPropagation(); loadClip() }}>
                   Next Round 
                 </button>
